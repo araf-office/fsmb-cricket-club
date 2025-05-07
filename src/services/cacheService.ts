@@ -21,7 +21,6 @@ interface CacheMetadata {
 interface SummaryData {
   teams: Record<string, unknown>;
   matches: Array<unknown>;
-  hallOfFame?: Array<Array<string | number>>;
   [key: string]: unknown;
 }
 
@@ -118,7 +117,7 @@ export const cacheService = {
       // Try to use cached data as fallback even if expired
       const cachedData = localStorage.getItem(cacheKey);
       if (cachedData) {
-        console.log("Using cached data as fallback after error");
+        console.log("Using expired cached data as fallback");
         return JSON.parse(cachedData) as SummaryData;
       }
       
@@ -159,7 +158,7 @@ export const cacheService = {
       // Try to use cached data as fallback even if expired
       const cachedData = localStorage.getItem(cacheKey);
       if (cachedData) {
-        console.log("Using cached data as fallback after error");
+        console.log("Using expired cached data as fallback");
         return JSON.parse(cachedData) as PlayersData;
       }
       

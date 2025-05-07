@@ -85,6 +85,8 @@ function DataTester() {
     try {
       setLoading(true);
       setStatusMessage('Loading summary data...');
+
+      
       
       const needsUpdate = await checkForUpdates();
       const cachedData = localStorage.getItem(SUMMARY_KEY);

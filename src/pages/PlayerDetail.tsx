@@ -332,8 +332,12 @@ function PlayerDetail() {
             <div className="card-body">
               <div className="stats-list">
                 <div className="stat-item">
-                  <span className="label">Matches / Innings / Runs</span>
-                  <span className="value">{player.matches} / {player.innings} / {player.runsScored}</span>
+                  <span className="label">Matches / Innings</span>
+                  <span className="value">{player.matches} / {player.innings}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="label">Runs</span>
+                  <span className="value">{player.runsScored}</span>
                 </div>
                 <div className="stat-item">
                   <span className="label">Highest Score</span>

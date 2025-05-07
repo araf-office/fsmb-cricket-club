@@ -50,7 +50,7 @@ function Header() {
           <ul className="nav-links">
             <li><Link to="/" onClick={() => setMenuOpen(false)}>Home</Link></li>
             <li><Link to="/players" onClick={() => setMenuOpen(false)}>Players</Link></li>
-            <li><Link to="/HallOfFame" onClick={() => setMenuOpen(false)}>Hall of Fame</Link></li>
+            <li><Link to="/hall-of-fame" onClick={() => setMenuOpen(false)}>Hall of Fame</Link></li>
             <li><Link to="#" onClick={() => setMenuOpen(false)}>Matches</Link></li>
             <li><Link to="#" onClick={() => setMenuOpen(false)}>Live Match</Link></li>
             

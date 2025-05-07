@@ -14,6 +14,11 @@ interface PlayersData {
   [key: string]: unknown;
 }
 
+
+
+
+
+
 function Home() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -22,6 +27,27 @@ function Home() {
     async function initializeData() {
       try {
         // Get summary data (includes stats, leaderboards, hall of fame)
+
+        async function fetchHallOfFameData() {
+          try {
+            // Fetch summary data which should contain leaderboards
+            const summaryData = await cacheService.fetchSummaryData();
+            console.log('Hall of Fame Data:', summaryData);
+            
+            // Fetch players data to get additional details
+            const playersData = await cacheService.fetchPlayers();
+            console.log('Players Data:', playersData);
+            
+            return { summaryData, playersData };
+          } catch (error) {
+            console.error('Error fetching Hall of Fame data:', error);
+            throw error;
+          }
+        }
+        
+        // Call this function to see the data structure
+        fetchHallOfFameData();
+        
         await cacheService.fetchSummaryData();
         
         // Get players data
