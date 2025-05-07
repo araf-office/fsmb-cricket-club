@@ -1,0 +1,95 @@
+// src/styles/components/home/_upcoming-matches.scss
+.upcoming-matches {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    
+    h2 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+    
+    .matches-list {
+      .match-item {
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+        
+        &:last-child {
+          border-bottom: none;
+          margin-bottom: 0;
+        }
+        
+        .match-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          
+          .match-info {
+            .match-date {
+              display: block;
+              font-size: 0.875rem;
+              color: #6c757d;
+            }
+            
+            .match-teams {
+              display: block;
+              font-size: 1.125rem;
+              font-weight: 600;
+              margin: 0.25rem 0;
+            }
+            
+            .match-venue {
+              display: block;
+              font-size: 0.875rem;
+              color: #495057;
+            }
+          }
+          
+          .match-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            
+            &.home {
+              background-color: #d4edda;
+              color: #155724;
+            }
+            
+            &.away {
+              background-color: #cce5ff;
+              color: #004085;
+            }
+          }
+        }
+      }
+    }
+    
+    .view-all {
+      display: block;
+      text-align: center;
+      margin-top: 1rem;
+      color: #007bff;
+      text-decoration: none;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .match-content {
+        flex-direction: column;
+        align-items: flex-start;
+        
+        .match-badge {
+          margin-top: 0.5rem;
+          align-self: flex-start;
+        }
+      }
+    }
+  }

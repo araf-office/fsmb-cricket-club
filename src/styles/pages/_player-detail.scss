@@ -1,0 +1,210 @@
+// src/styles/pages/_player-detail.scss
+@use '../variables' as *;
+@use "sass:color";
+
+.player-detail-page {
+  padding-top: 80px; // Space for fixed header
+  background-color: $white; // Explicit background color
+  
+  .section {
+    background-color: $white;
+    padding: 3rem 1rem;
+  }
+  
+  .loading, .error {
+    text-align: center;
+    padding: 3rem 0;
+    font-size: 1.25rem;
+    color: $text-muted;
+  }
+  
+  .error {
+    color: $danger-color;
+  }
+  
+  .player-header {
+    padding-bottom: 0;
+  }
+  
+  .player-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+    
+    @media (min-width: 768px) {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+  }
+  
+  .player-image-container {
+    position: relative;
+    margin-bottom: 1.5rem;
+    flex-shrink: 0;
+    
+    @media (min-width: 768px) {
+      margin-right: 3rem;
+      margin-bottom: 0;
+    }
+  }
+  
+  .player-image {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 5px solid $white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    
+    @media (min-width: 768px) {
+      width: 250px;
+      height: 250px;
+    }
+  }
+  
+  .player-team {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: $primary-color;
+    color: $white;
+    font-size: 0.875rem;
+    font-weight: bold;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    text-transform: uppercase;
+    transform: translateY(50%);
+  }
+  
+  .player-info {
+    text-align: center;
+    
+    @media (min-width: 768px) {
+      text-align: left;
+      flex-grow: 1;
+    }
+  }
+  
+  .player-name {
+    font-size: 2.25rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: $gray-900; // Dark text
+  }
+  
+  .player-role {
+    font-size: 1.25rem;
+    color: $gray-600; // Visible text
+    margin-bottom: 1.5rem;
+  }
+  
+  .player-contact {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    
+    @media (min-width: 576px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .contact-item {
+      padding: 0.5rem;
+      background-color: $gray-100;
+      border-radius: $border-radius;
+      
+      .label {
+        font-weight: bold;
+        margin-right: 0.5rem;
+        color: $gray-800;
+      }
+      
+      .value {
+        color: $gray-600;
+      }
+    }
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    
+    @media (min-width: 768px) {
+      grid-template-columns: 2fr 1fr 1fr;
+    }
+  }
+  
+  .stats-list {
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid $gray-200;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .label {
+        color: $gray-600;
+      }
+      
+      .value {
+        font-weight: bold;
+        color: $gray-800;
+      }
+    }
+  }
+  
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    
+    @media (min-width: 992px) {
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    .chart-container {
+      height: 300px;
+    }
+  }
+  
+  .responsive-table {
+    overflow-x: auto;
+    
+    .matches-table {
+      width: 100%;
+      border-collapse: collapse;
+      
+      th, td {
+        padding: 0.75rem;
+        text-align: left;
+      }
+      
+      th {
+        background-color: $gray-100;
+        color: $gray-800;
+        font-weight: bold;
+      }
+      
+      tr {
+        border-bottom: 1px solid $gray-200;
+        
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+      
+      tr:nth-child(even) {
+        background-color: $gray-50;
+      }
+      
+      td {
+        color: $gray-700; // Ensure visible text in table cells
+      }
+    }
+  }
+}

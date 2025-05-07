@@ -1,0 +1,151 @@
+/* src/styles/components/player/_match-modal.scss */
+.match-item {
+    margin-bottom: 0.75rem; // Reduced margin
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    transition: all 0.3s ease;
+    
+    &.expanded {
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    }
+  }
+  
+  .match-summary {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 1rem; // Reduced padding
+    cursor: pointer;
+    position: relative;
+    align-items: center;
+    background-color: #f8f9fa;
+    
+    &:hover {
+      background-color: #f1f3f5;
+    }
+  }
+  
+  .match-header {
+    display: flex;
+    gap: 0.5rem; // Reduced gap
+    align-items: center; // Center align
+  }
+  
+  .match-number {
+    font-weight: bold;
+    color: #007bff;
+  }
+  
+  .match-date {
+    color: #6c757d;
+  }
+  
+  .match-stats {
+    display: flex;
+    gap: 0.75rem; // Reduced gap
+    flex-wrap: nowrap; // Keep items on same line
+    align-items: center; // Center align
+  }
+  
+  .match-runs, .match-wickets {
+    font-weight: 500;
+  }
+  
+  .match-mom {
+    color: #28a745;
+    font-weight: bold;
+  }
+  
+  .arrow-icon {
+    margin-left: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    i {
+      font-size: 18px;
+    }
+  }
+  
+  .match-details {
+    padding: 1rem; // Reduced padding
+    border-top: 1px solid #dee2e6;
+    background-color: white;
+  }
+  
+  .detail-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem; // Reduced gap
+  }
+  
+  .detail-column {
+    h4 {
+      font-size: 1rem; // Smaller heading
+      margin-bottom: 0.5rem; // Reduced margin
+      color: #343a40;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 0.25rem; // Reduced padding
+    }
+  }
+  
+  .detail-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem; // Reduced margin
+    
+    .detail-label {
+      color: #6c757d;
+      font-weight: 500;
+    }
+    
+    .detail-value {
+      font-weight: 600;
+      color: #212529;
+      
+      &.won {
+        color: #28a745;
+      }
+      
+      &.lost {
+        color: #dc3545;
+      }
+    }
+  }
+  
+  .match-footer {
+    margin-top: 0.75rem; // Reduced margin
+    padding-top: 0.75rem; // Reduced padding
+    border-top: 1px dashed #dee2e6;
+    display: flex; // Changed to flex
+    flex-wrap: wrap; // Allow wrapping
+    gap: 0.5rem 1.5rem; // Gap between items
+    
+    .detail-item {
+      flex: 1 0 30%; // Allow 3 items per row
+      min-width: 150px;
+    }
+    
+    .mom-badge {
+      flex: 0 0 100%; // Full width
+      background-color: #ffc107;
+      color: #212529;
+      text-align: center;
+      padding: 0.25rem;
+      border-radius: 4px;
+      font-weight: bold;
+      margin-top: 0.5rem;
+    }
+  }
+  
+  // Make all text a bit smaller on mobile
+  @media (max-width: 768px) {
+    .match-summary {
+      font-size: 0.9rem;
+    }
+    
+    .detail-columns {
+      grid-template-columns: 1fr;
+    }
+  }

@@ -1,0 +1,36 @@
+
+@use './styles/variables';
+@use './styles/components/buttons';
+@use './styles/components/cards';
+@use './styles/components/sections';
+
+// Import component styles
+@use './styles/components/common/header';
+@use './styles/components/common/footer';
+@use './styles/components/home/hero-section';
+@use './styles/components/home/upcoming-matches';
+@use './styles/components/home/recent-results';
+@use './styles/components/home/team-stats';
+@use './styles/components/player/match-modal';
+
+// Import page styles
+@use './styles/pages/home';
+@use './styles/pages/players';
+@use './styles/pages/player-detail';
+@use './styles/pages/hall-of-fame';
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
