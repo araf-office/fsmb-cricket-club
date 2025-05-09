@@ -58,7 +58,7 @@ function Header() {
             <li><Link to="/"             className={isActive('/') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Home</Link></li>
             <li><Link to="/players"      className={isActive('/players') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Players</Link></li>
             <li><Link to="/hall-of-fame" className={isActive('/hall-of-fame') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Hall of Fame</Link></li>
-            <li><Link to="#" onClick={() => setMenuOpen(false)}>Matches</Link></li>
+            <li><Link to="/leaderboard"  className={isActive('/leaderboard') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Leaderboard</Link></li>
             <li><Link to="#" onClick={() => setMenuOpen(false)}>Live Match</Link></li>
             
           </ul>
