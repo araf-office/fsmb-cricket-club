@@ -7,9 +7,9 @@ function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div className="footer-col">
-            <h3>FSMB Cricket Club</h3>
+            <h3>Amader Cricket Club</h3>
             <p>
-              Established in 2010, FSMB Cricket Club has been a leading cricket club 
+              Established in 2010, Amader Cricket Club has been a leading cricket club 
               committed to excellence both on and off the field.
             </p>
           </div>
@@ -25,10 +25,10 @@ function Footer() {
           <div className="footer-col">
             <h3>Contact Us</h3>
             <address>
-              <p>FSMB Stadium</p>
+              <p>Amader Stadium</p>
               <p>123 Cricket Avenue</p>
               <p>Dhaka, Bangladesh</p>
-              <p>Email: info@fsmbcricket.com</p>
+              <p>Email: info@Amadercricket.com</p>
               <p>Phone: +880 1234 567890</p>
             </address>
           </div>
@@ -43,7 +43,7 @@ function Footer() {
           </div>
         </div>
         <div className="copyright">
-          <p>&copy; 2025 FSMB Cricket Club. All rights reserved.</p>
+          <p>&copy; 2025 Amader Cricket Club. All rights reserved.</p>
         </div>
       </div>
     </footer>

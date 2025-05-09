@@ -1,104 +1,216 @@
 // src/components/home/TeamStats.tsx
+import { useEffect, useState } from 'react';
+import { cacheService } from '../../services/cacheService';
+
+// Define proper types
+interface StatsData {
+  totalMatches: number;
+  totalRunsScored: number;
+  totalBallsBowled: number;
+  allTimeHighestScore: number;
+  highestScorePlayer: string;
+}
+
+type DataRow = Array<string | number>;
+type PlayersData = Array<DataRow>;
+
 function TeamStats() {
-  // This will eventually be loaded from Google Sheets
-  const teamStats = {
-    team1: {
-      name: "Team Alpha",
-      totalPlayers: 18,
-      matchesWon: 12,
-      topScorer: "John Doe",
-      topScorerRuns: 342,
-      topWicketTaker: "Alex Smith",
-      topWicketTakerWickets: 15
-    },
-    team2: {
-      name: "Team Beta",
-      totalPlayers: 18,
-      matchesWon: 10,
-      topScorer: "Mike Johnson",
-      topScorerRuns: 306,
-      topWicketTaker: "David Brown",
-      topWicketTakerWickets: 14
-    },
-    season: {
-      totalMatches: 22,
-      matchesPlayed: 22,
-      highestTeamScore: 186,
-      lowestTeamScore: 89
+  // All-time stats from player data
+  const [allTimeStats, setAllTimeStats] = useState<StatsData>({
+    totalMatches: 0,
+    totalRunsScored: 0,
+    totalBallsBowled: 0,
+    allTimeHighestScore: 0,
+    highestScorePlayer: ''
+  });
+  
+  const [, setLoading] = useState(true);
+  
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        console.log("Fetching player statistics...");
+        
+        // Get player data for all-time stats
+        const playersData = await cacheService.fetchPlayers();
+        
+        // Calculate all-time statistics from player data
+        if (playersData && playersData.stats && Array.isArray(playersData.stats)) {
+          const allTimeStats = calculateAllTimeStats(playersData.stats);
+          setAllTimeStats(allTimeStats);
+          console.log("All-time stats calculated:", allTimeStats);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching stats data:", error);
+        setLoading(false);
+      }
     }
+    
+    fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
+  // Calculate all-time statistics from player data
+  const calculateAllTimeStats = (playersData: PlayersData): StatsData => {
+    const stats: StatsData = {
+      totalMatches: 0,
+      totalRunsScored: 0,
+      totalBallsBowled: 0,
+      allTimeHighestScore: 0,
+      highestScorePlayer: ''
+    };
+    
+    if (!playersData || playersData.length < 2) {
+      console.error("Invalid players data format");
+      return stats;
+    }
+    
+    try {
+      // Get headers to find column indices
+      const headers = playersData[0];
+      console.log("Stats headers:", headers);
+      
+      // Find the indices of the required columns
+      const matchesIndex = findColumnIndex(headers, ['Matches', 'matches']);
+      const runsIndex = findColumnIndex(headers, ['Runs Scored', 'runs scored', 'runs']);
+      const ballsBowledIndex = findColumnIndex(headers, ['Balls Bowled', 'balls bowled']);
+      const highestScoreIndex = findColumnIndex(headers, ['Highest Score', 'highest score']);
+      const playerNameIndex = findColumnIndex(headers, ['Player Name', 'player name', 'name']);
+      
+      console.log("Column indices found:", {
+        matches: matchesIndex,
+        runs: runsIndex,
+        ballsBowled: ballsBowledIndex,
+        highestScore: highestScoreIndex,
+        playerName: playerNameIndex
+      });
+      
+      // Extract stats data
+      const dataRows = playersData.slice(1); // Skip header row
+      
+      // Calculate stats
+      let maxMatches = 0;
+      let totalRuns = 0;
+      let totalBallsBowled = 0;
+      let maxHighScore = 0;
+      let highScorePlayer = '';
+      
+      for (const row of dataRows) {
+        // Process matches count (find highest value)
+        if (matchesIndex !== -1 && row[matchesIndex] !== undefined) {
+          const matches = Number(row[matchesIndex]);
+          if (!isNaN(matches) && matches > maxMatches) {
+            maxMatches = matches;
+          }
+        }
+        
+        // Sum total runs scored
+        if (runsIndex !== -1 && row[runsIndex] !== undefined) {
+          const runs = Number(row[runsIndex]);
+          if (!isNaN(runs)) {
+            totalRuns += runs;
+          }
+        }
+        
+        // Sum total balls bowled
+        if (ballsBowledIndex !== -1 && row[ballsBowledIndex] !== undefined) {
+          const balls = Number(row[ballsBowledIndex]);
+          if (!isNaN(balls)) {
+            totalBallsBowled += balls;
+          }
+        }
+        
+        // Find highest score
+        if (highestScoreIndex !== -1 && row[highestScoreIndex] !== undefined) {
+          // Highest score might be in format like "76*" or "76 (50)" - extract the number
+          const scoreStr = String(row[highestScoreIndex]);
+          const scoreMatch = scoreStr.match(/^\d+/);
+          if (scoreMatch) {
+            const score = Number(scoreMatch[0]);
+            if (!isNaN(score) && score > maxHighScore) {
+              maxHighScore = score;
+              // Get player name if available
+              if (playerNameIndex !== -1 && row[playerNameIndex] !== undefined) {
+                highScorePlayer = String(row[playerNameIndex]);
+              }
+            }
+          }
+        }
+      }
+      
+      return {
+        totalMatches: maxMatches,
+        totalRunsScored: totalRuns,
+        totalBallsBowled: totalBallsBowled,
+        allTimeHighestScore: maxHighScore,
+        highestScorePlayer: highScorePlayer
+      };
+    } catch (error) {
+      console.error("Error calculating all-time stats:", error);
+      return stats;
+    }
+  };
+  
+  // Helper to find column index in header row
+  const findColumnIndex = (headers: DataRow, possibleNames: string[]): number => {
+    // First try exact match
+    for (const name of possibleNames) {
+      const index = headers.findIndex(
+        (header) => 
+          typeof header === 'string' && 
+          header.toLowerCase() === name.toLowerCase()
+      );
+      if (index !== -1) return index;
+    }
+    
+    // If exact match not found, try partial match
+    for (const name of possibleNames) {
+      const index = headers.findIndex(
+        (header) => 
+          typeof header === 'string' && 
+          header.toLowerCase().includes(name.toLowerCase())
+      );
+      if (index !== -1) return index;
+    }
+    
+    // Return -1 to indicate not found (rather than defaulting to first column)
+    return -1;
   };
 
   return (
     <section className="team-stats" id="team-stats">
-      <h2>Office League Statistics</h2>
+      <h2 className="section-title">Match Statistics</h2>
       
+      {/* All-time statistics from player data */}
       <div className="season-stats">
-        <h3>Current Season</h3>
+        <h3>All-Time Statistics</h3>
         <div className="stats-row">
           <div className="stat-item">
             <span className="stat-label">Total Matches</span>
-            <span className="stat-value">{teamStats.season.totalMatches}</span>
+            <span className="stat-value">{allTimeStats.totalMatches}</span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">Matches Played</span>
-            <span className="stat-value">{teamStats.season.matchesPlayed}</span>
+            <span className="stat-label">Total Runs</span>
+            <span className="stat-value">{allTimeStats.totalRunsScored}</span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">Highest Team Score</span>
-            <span className="stat-value">{teamStats.season.highestTeamScore}</span>
+            <span className="stat-label">Total Balls Bowled</span>
+            <span className="stat-value">{allTimeStats.totalBallsBowled}</span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">Lowest Team Score</span>
-            <span className="stat-value">{teamStats.season.lowestTeamScore}</span>
-          </div>
-        </div>
-      </div>
-      
-      <div className="teams-comparison">
-        <div className="team-column">
-          <h3>{teamStats.team1.name}</h3>
-          <div className="team-stat">
-            <span className="stat-label">Players</span>
-            <span className="stat-value">{teamStats.team1.totalPlayers}</span>
-          </div>
-          <div className="team-stat">
-            <span className="stat-label">Matches Won</span>
-            <span className="stat-value">{teamStats.team1.matchesWon}</span>
-          </div>
-          <div className="team-stat">
-            <span className="stat-label">Top Scorer</span>
-            <span className="stat-value">{teamStats.team1.topScorer} ({teamStats.team1.topScorerRuns})</span>
-          </div>
-          <div className="team-stat">
-            <span className="stat-label">Top Wicket Taker</span>
-            <span className="stat-value">{teamStats.team1.topWicketTaker} ({teamStats.team1.topWicketTakerWickets})</span>
-          </div>
-        </div>
-        
-        <div className="vs-divider">VS</div>
-        
-        <div className="team-column">
-          <h3>{teamStats.team2.name}</h3>
-          <div className="team-stat">
-            <span className="stat-label">Players</span>
-            <span className="stat-value">{teamStats.team2.totalPlayers}</span>
-          </div>
-          <div className="team-stat">
-            <span className="stat-label">Matches Won</span>
-            <span className="stat-value">{teamStats.team2.matchesWon}</span>
-          </div>
-          <div className="team-stat">
-            <span className="stat-label">Top Scorer</span>
-            <span className="stat-value">{teamStats.team2.topScorer} ({teamStats.team2.topScorerRuns})</span>
-          </div>
-          <div className="team-stat">
-            <span className="stat-label">Top Wicket Taker</span>
-            <span className="stat-value">{teamStats.team2.topWicketTaker} ({teamStats.team2.topWicketTakerWickets})</span>
+            <span className="stat-label">Highest Score</span>
+            <span className="stat-value">{allTimeStats.allTimeHighestScore}</span>
+            {allTimeStats.highestScorePlayer && (
+              <span className="stat-detail">by {allTimeStats.highestScorePlayer}</span>
+            )}
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }
 
-export default TeamStats
+export default TeamStats;

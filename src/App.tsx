@@ -8,6 +8,7 @@ import HallOfFame from './pages/HallofFame'
 
 import Header from './components/common/Header'
 import Footer from './components/common/Footer'
+import GoToTop from './components/common/GoToTop'
 import './App.scss'
 
 
@@ -23,10 +24,12 @@ function App() {
             <Route path="/players/:id" element={<PlayerDetail />} />
             <Route path="/hall-of-fame" element={<HallOfFame />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
-
           </Routes>
         </main>
         <Footer />
+        
+        {/* Add GoToTop component globally */}
+        <GoToTop />
       </div>
     </BrowserRouter>
   )
