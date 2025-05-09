@@ -37,11 +37,39 @@
   .header-inner {
     max-width: 1300px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 1rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
+    position: relative;
+    min-height: 60px; // Ensure minimum height for the header
+    
+    @media (min-width: 769px) {
+      justify-content: space-between;
+      
+      // This ensures the navigation stays centered
+      .desktop-logo {
+        flex: 0 0 auto;
+      }
+      
+      .main-nav {
+        flex: 2;
+        display: flex;
+        justify-content: center;
+      }
+      
+      .live-now-container {
+        flex: 0 0 auto;
+      }
+    }
+  }
+  
+  // Desktop logo container - hide on mobile
+  .desktop-logo {
+    @media (max-width: 768px) {
+      display: none;
+    }
   }
   
   .logo {
@@ -77,62 +105,112 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: 0.5rem;
-    z-index: 1001;
+    padding: 0;
+    z-index: 1002; // Above everything
+    position: relative;
+    width: 30px;
+    height: 30px; // Increased height
+    transition: transform 0.3s ease;
+    margin-left: 10px; // Add margin to prevent cutoff
     
     @media (max-width: 768px) {
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      width: 30px;
-      height: 24px;
+      justify-content: center; // Center the bars
+      align-items: center; // Center horizontally
+    }
+    
+    &.open {
+      position: fixed;
+      top: 1.1rem;
+      left: 1.1rem;
+      margin: 0;
+      background-color: transparent;
     }
     
     .bar {
       display: block;
-      width: 100%;
       height: 3px;
       background-color: white;
       border-radius: 3px;
       transition: all 0.3s ease;
+      transform-origin: center;
+      margin: 3px 0; // Space between bars
       
       &:nth-child(1) {
-        .open & {
-          transform: rotate(45deg) translate(7px, 7px);
-        }
+        width: 30px; // Fixed width
       }
       
       &:nth-child(2) {
-        .open & {
-          opacity: 0;
-        }
+        width: 24px; // Fixed width (80%)
+        align-self: flex-end;
       }
       
       &:nth-child(3) {
-        .open & {
-          transform: rotate(-45deg) translate(7px, -7px);
-        }
+        width: 18px; // Fixed width (60%)
+        align-self: flex-end;
+      }
+    }
+    
+    &.open .bar {
+      margin: 0; // Remove margin to avoid positioning issues
+      position: absolute; // Absolute positioning for X transformation
+      
+      &:nth-child(1) {
+        transform: rotate(45deg);
+        width: 30px;
+        top: 13px; // Center vertically
+      }
+      
+      &:nth-child(2) {
+        opacity: 0;
+        width: 0;
+      }
+      
+      &:nth-child(3) {
+        transform: rotate(-45deg);
+        width: 30px;
+        top: 13px; // Center vertically
       }
     }
   }
   
+  // Full-screen navigation
   .main-nav {
+    @media (min-width: 769px) {
+      // Center the nav links in desktop view
+      display: flex;
+      justify-content: center;
+      
+      .menu-header {
+        display: none;
+      }
+    }
     
     @media (max-width: 768px) {
       position: fixed;
       top: 0;
-      right: -100%;
-      width: 80%;
-      max-width: 300px;
+      left: -100%; // Position from left side now
+      width: 100%; // Full width
       height: 100vh;
-      background-color: rgba(33, 37, 41, 0.95);
+      background-color: $primary-color; // Use primary color
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      transition: right 0.3s ease;
+      padding-top: 6rem; // Increased space for the X button
+      align-items: center;
+      transition: left 0.3s ease; // Animate from left
+      z-index: 1001;
       
       &.open {
-        right: 0;
+        left: 0;
+      }
+      
+      .menu-header {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        display: flex;
+        justify-content: center;
+        width: 100%;
       }
     }
     
@@ -147,17 +225,35 @@
         flex-direction: column;
         align-items: center;
         gap: 2rem;
+        width: 100%;
+        padding: 0 2rem;
       }
     }
     
-   li {
-      a {
+    li {
+      @media (max-width: 768px) {
+        width: 100%;
+        text-align: center;
+      }
+      
+      button {
         color: white;
+        background: none;
+        border: none;
         text-decoration: none;
         transition: color 0.3s;
         font-weight: 500;
         position: relative;
         padding: 0.5rem 0;
+        font-size: 1rem;
+        cursor: pointer;
+        
+        @media (max-width: 768px) {
+          width: 100%;
+          padding: 1rem;
+          font-size: 1.25rem;
+          font-weight: 600;
+        }
         
         &::after {
           content: '';
@@ -192,6 +288,26 @@
 
   .live-now-container {
     position: relative;
+    z-index: 1002; // Same as mobile-menu-toggle
+    
+    @media (max-width: 768px) {
+      // Keep visible at all times
+      display: block;
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    
+    // When menu is open, adjust position
+    .menu-open & {
+      @media (max-width: 768px) {
+        position: fixed;
+        top: 1.1rem;
+        right: 1.1rem;
+        transform: none;
+      }
+    }
   }
   
   .live-now {
@@ -206,6 +322,7 @@
     text-decoration: none;
     transition: background-color 0.3s;
     cursor: pointer;
+    height: 38px; // Fixed height to ensure visibility
 
     &:hover {
       background-color: rgba(255, 255, 255, 0.2);
@@ -234,6 +351,7 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     animation: fadeIn 0.3s ease;
     white-space: nowrap;
+    z-index: 1003;
     
     &::before {
       content: '';
@@ -251,6 +369,11 @@
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
   }
+  
+  @keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+  }
 
   @keyframes pulse {
     0% { transform: scale(1); opacity: 1; }
@@ -259,7 +382,7 @@
   }
 }
 
-// Make space for the fixed header
+// Menu open body styles
 body {
   padding-top: 0; // No padding needed since hero takes full height
 }

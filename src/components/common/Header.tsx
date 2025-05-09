@@ -1,6 +1,6 @@
 // src/components/common/Header.tsx
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logo from '../../assets/logo.png'
 
 function Header() {
@@ -8,6 +8,7 @@ function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   
   const isHomePage = location.pathname === '/';
   
@@ -30,10 +31,18 @@ function Header() {
     
     window.addEventListener('scroll', handleScroll);
     
+    // Prevent scrolling when menu is open
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      document.body.style.overflow = '';
     };
-  }, []);
+  }, [menuOpen]);
   
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -49,28 +58,49 @@ function Header() {
     }, 3000);
   };
   
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setMenuOpen(false);
+  };
+  
   return (
-    <header className={`header ${isScrolled ? 'scrolled' : ''} ${isHomePage ? 'home-page' : 'other-page'}`}>
+    <header className={`header ${isScrolled ? 'scrolled' : ''} ${isHomePage ? 'home-page' : 'other-page'} ${menuOpen ? 'menu-open' : ''}`}>
       <div className="header-inner">
-
-        <Link to="/" className="logo">
-          <img src={logo} alt="Amader Cricket" />
-          <span>Amader Cricket</span>
-        </Link>
-        
-        <button className="mobile-menu-toggle" onClick={toggleMenu} aria-label="Toggle menu">
+        {/* Move hamburger to the left */}
+        <button 
+          className={`mobile-menu-toggle ${menuOpen ? 'open' : ''}`} 
+          onClick={toggleMenu} 
+          aria-label="Toggle menu"
+          aria-expanded={menuOpen}
+        >
           <span className="bar"></span>
           <span className="bar"></span>
           <span className="bar"></span>
         </button>
         
-        <nav className={`main-nav ${menuOpen ? 'open' : ''}`}>
-          <ul className="nav-links">
-            <li><Link to="/" className={isActive('/') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Home</Link></li>
-            <li><Link to="/players" className={isActive('/players') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Players</Link></li>
-            <li><Link to="/hall-of-fame" className={isActive('/hall-of-fame') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Hall of Fame</Link></li>
-            <li><Link to="/leaderboard" className={isActive('/leaderboard') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Leaderboard</Link></li>
+        {/* Only show logo in desktop view or inside menu */}
+        <div className="desktop-logo">
+          <Link to="/" className="logo">
+            <img src={logo} alt="Amader Cricket" />
+            <span>Amader Cricket</span>
+          </Link>
+        </div>
 
+        {/* Full screen navigation menu */}
+        <nav className={`main-nav ${menuOpen ? 'open' : ''}`}>
+          {/* Show logo in mobile menu */}
+          <div className="menu-header">
+            <Link to="/" className="logo" onClick={() => setMenuOpen(false)}>
+              <img src={logo} alt="Amader Cricket" />
+              <span>Amader Cricket</span>
+            </Link>
+          </div>
+          
+          <ul className="nav-links">
+            <li><button className={isActive('/') ? 'active' : ''} onClick={() => handleNavigation('/')}>Home</button></li>
+            <li><button className={isActive('/players') ? 'active' : ''} onClick={() => handleNavigation('/players')}>Players</button></li>
+            <li><button className={isActive('/hall-of-fame') ? 'active' : ''} onClick={() => handleNavigation('/hall-of-fame')}>Hall of Fame</button></li>
+            <li><button className={isActive('/leaderboard') ? 'active' : ''} onClick={() => handleNavigation('/leaderboard')}>Leaderboard</button></li>
           </ul>
         </nav>
 
