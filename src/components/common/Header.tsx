@@ -6,6 +6,7 @@ import logo from '../../assets/logo.png'
 function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   const location = useLocation();
   
   const isHomePage = location.pathname === '/';
@@ -37,6 +38,16 @@ function Header() {
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
+
+  const handleLiveClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowTooltip(true);
+    
+    // Hide tooltip after 3 seconds
+    setTimeout(() => {
+      setShowTooltip(false);
+    }, 3000);
+  };
   
   return (
     <header className={`header ${isScrolled ? 'scrolled' : ''} ${isHomePage ? 'home-page' : 'other-page'}`}>
@@ -55,19 +66,25 @@ function Header() {
         
         <nav className={`main-nav ${menuOpen ? 'open' : ''}`}>
           <ul className="nav-links">
-            <li><Link to="/"             className={isActive('/') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Home</Link></li>
-            <li><Link to="/players"      className={isActive('/players') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Players</Link></li>
+            <li><Link to="/" className={isActive('/') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Home</Link></li>
+            <li><Link to="/players" className={isActive('/players') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Players</Link></li>
             <li><Link to="/hall-of-fame" className={isActive('/hall-of-fame') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Hall of Fame</Link></li>
-            <li><Link to="/leaderboard"  className={isActive('/leaderboard') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Leaderboard</Link></li>
-            <li><Link to="#" onClick={() => setMenuOpen(false)}>Live Match</Link></li>
-            
+            <li><Link to="/leaderboard" className={isActive('/leaderboard') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Leaderboard</Link></li>
+
           </ul>
         </nav>
 
-         {/* Right: Live Now Button */}
-        <div className="live-now">
-          <span className="dot"></span>
-          <span>Live Now</span>
+        {/* Right: Live Now Button */}
+        <div className="live-now-container">
+          <a href="#" className="live-now" onClick={handleLiveClick}>
+            <span className="dot"></span>
+            <span>Live Now</span>
+          </a>
+          {showTooltip && (
+            <div className="coming-soon-tooltip">
+              Coming Soon!
+            </div>
+          )}
         </div>
       </div>
     </header>

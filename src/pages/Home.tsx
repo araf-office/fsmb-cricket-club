@@ -15,11 +15,6 @@ interface PlayersData {
 }
 
 
-
-
-
-
-
 function Home() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 

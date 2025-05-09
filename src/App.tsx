@@ -3,9 +3,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import Players from './pages/Players'
 import PlayerDetail from './pages/PlayerDetail'
-// import LiveMatch from './pages/LiveMatch'
 import Leaderboard from './pages/Leaderboard'
 import HallOfFame from './pages/HallofFame'
+
 import Header from './components/common/Header'
 import Footer from './components/common/Footer'
 import './App.scss'
@@ -24,7 +24,6 @@ function App() {
             <Route path="/hall-of-fame" element={<HallOfFame />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
 
-            {/* <Route path="/live" element={<LiveMatch />} />*/}
           </Routes>
         </main>
         <Footer />
