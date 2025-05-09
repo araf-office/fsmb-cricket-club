@@ -19,6 +19,7 @@ interface PlayersData {
 
 
 
+
 function Home() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -47,7 +48,7 @@ function Home() {
         
         // Call this function to see the data structure
         fetchHallOfFameData();
-        
+
         await cacheService.fetchSummaryData();
         
         // Get players data

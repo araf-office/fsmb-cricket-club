@@ -14,7 +14,7 @@
   background-color: transparent;
 
   &.other-page {
-    background-color: $dark;
+    background-color: $primary-color;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   }
   
@@ -23,13 +23,13 @@
     background-color: transparent;
     
     &.scrolled {
-      background-color: rgba(33, 37, 41, 0.95);
+      background-color: $primary-color;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
   }
 
   &.scrolled {
-    background-color: rgba(33, 37, 41, 0.95);
+    background-color: $primary-color;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     padding: 0.75rem 0;
   }
@@ -150,7 +150,7 @@
       }
     }
     
-    li {
+   li {
       a {
         color: white;
         text-decoration: none;
@@ -166,12 +166,21 @@
           left: 0;
           width: 0;
           height: 2px;
-          background-color: #ffc107;
+          background-color: $accent-color;
           transition: width 0.3s ease;
         }
         
         &:hover {
-          color: #ffc107;
+          color: $accent-color;
+          
+          &::after {
+            width: 100%;
+          }
+        }
+        
+        // Active state styling
+        &.active {
+          color: $accent-color;
           
           &::after {
             width: 100%;

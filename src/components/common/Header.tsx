@@ -8,8 +8,15 @@ function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   
-  // Check if we're on the home page
   const isHomePage = location.pathname === '/';
+  
+  // Function to check if a path is active
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  };
   
   useEffect(() => {
     const handleScroll = () => {
@@ -36,8 +43,8 @@ function Header() {
       <div className="header-inner">
 
         <Link to="/" className="logo">
-          <img src={logo} alt="FSMB Office Cricket" />
-          <span>FSMB Office Cricket</span>
+          <img src={logo} alt="Amader Cricket" />
+          <span>Amader Cricket</span>
         </Link>
         
         <button className="mobile-menu-toggle" onClick={toggleMenu} aria-label="Toggle menu">
@@ -48,9 +55,9 @@ function Header() {
         
         <nav className={`main-nav ${menuOpen ? 'open' : ''}`}>
           <ul className="nav-links">
-            <li><Link to="/" onClick={() => setMenuOpen(false)}>Home</Link></li>
-            <li><Link to="/players" onClick={() => setMenuOpen(false)}>Players</Link></li>
-            <li><Link to="/hall-of-fame" onClick={() => setMenuOpen(false)}>Hall of Fame</Link></li>
+            <li><Link to="/"             className={isActive('/') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Home</Link></li>
+            <li><Link to="/players"      className={isActive('/players') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Players</Link></li>
+            <li><Link to="/hall-of-fame" className={isActive('/hall-of-fame') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Hall of Fame</Link></li>
             <li><Link to="#" onClick={() => setMenuOpen(false)}>Matches</Link></li>
             <li><Link to="#" onClick={() => setMenuOpen(false)}>Live Match</Link></li>
             

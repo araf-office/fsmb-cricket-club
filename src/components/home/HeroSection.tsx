@@ -9,17 +9,17 @@ function HeroSection() {
   const slides = [
     {
       // Use a small, compressed image - these are just examples
-      imageUrl: 'https://images.pexels.com/photos/3404474/pexels-photo-3404474.jpeg?auto=compress&cs=tinysrgb&w=1200',
-      title: 'FSMB Cricket Club',
+      imageUrl: 'src/assets/hero/hero_1.jpg',
+      title: 'Lets Play Cricket',
       subtitle: 'Where Colleagues Become Competitors',
     },
     {
-      imageUrl: 'https://images.pexels.com/photos/3657154/pexels-photo-3657154.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      imageUrl: 'src/assets/hero/hero_2.jpg',
       title: 'Office League',
-      subtitle: 'Every Friday at the Company Grounds',
+      subtitle: 'Break The Stamps!',
     },
     {
-      imageUrl: 'https://images.pexels.com/photos/2986309/pexels-photo-2986309.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      imageUrl: 'src/assets/hero/hero_3.jpg',
       title: 'Join the Game',
       subtitle: 'Sign up for the next match',
     }
@@ -60,8 +60,8 @@ function HeroSection() {
                 <h1>{slide.title}</h1>
                 <p>{slide.subtitle}</p>
                 <div className="button-group">
-                  <a href="#upcoming-matches" className="btn btn-accent">Upcoming Matches</a>
-                  <a href="#players" className="btn btn-outline-light">Our Players</a>
+                  <a href="/hall-of-fame" className="btn btn-accent">Hall of Fame</a>
+                  <a href="/players" className="btn btn-outline-light">Our Players</a>
                 </div>
               </div>
             </div>
