@@ -4,13 +4,25 @@
 
 .players-page {
   padding-top: 80px; // Space for fixed header
-  background-color: $white; // Add explicit background color
+  background-color: var(--backgroundColor); // Add explicit background color
+  
   
   .section {
-    background-color: $white;
+    background-color: var(--backgroundColor);
     padding: 3rem 1rem;
   }
-  
+  .section-title {
+    font-family: var(--fontTitle);
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    letter-spacing: 8px;
+    color: var(--primaryColor);
+    [data-theme="dark"] & {
+      color: var(--accentColor);
+    }
+  }
   .players-grid {
     display: grid;
     grid-template-columns: repeat(1, 1fr);
@@ -30,13 +42,13 @@
     color: inherit;
     transition: transform 0.3s ease;
     padding: 1.5rem;
-    border-radius: $border-radius-lg;
-    background-color: $white; // Add background color to card
+    border-radius: 2rem;
+    background-color: var(--surfaceColor);
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); // Subtle shadow for definition
     
     &:hover {
       transform: translateY(-5px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+       box-shadow: 0px 25px 20px -20px #2B7582;
       
       .player-image-container::after {
         opacity: 1;
@@ -51,13 +63,14 @@
     overflow: hidden; // This will ensure the hover effect stays within the circle
     
     &::after {
+      font-family: var(--fontMono);
       content: 'View Profile';
       position: absolute;
       inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: rgba($primary-color, 0.7);
+      background-color: var(--overlayColor);
       color: $white;
       font-weight: bold;
       border-radius: 50%; // Keep the overlay round
@@ -73,57 +86,59 @@
     background-size: cover;
     background-position: center;
     margin: 0 auto;
-    border: 5px solid $white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    
+    box-shadow:rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;;
+   
   }
   
   .player-rank-badge {
+    font-family: var(--fontTitle);
     position: absolute;
     bottom: -2px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: $primary-color;
-    color: $white;
-    font-size: 0.875rem;
+    background-color: var(--primaryColor);
+    [data-theme="dark"] & {
+      background-color: var(--accentColor);
+    }
+    color: whitesmoke;
+    font-size: 0.675rem;
     font-weight: bold;
-    padding: 0.35rem 0.85rem;
+    padding: 0.45rem 1rem;
     border-radius: 1rem;
     text-transform: uppercase;
     z-index: 2; // Ensure it's above the hover overlay
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    border: 2px solid $white; // Add a white border for contrast
+    letter-spacing: 1px;
+    
   }
 
 
-  .player-team {
-    position: absolute;
-    bottom: 0;
-    right: 50%;
-    transform: translateX(50%) translateY(50%);
-    background-color: $primary-color;
-    color: $white;
-    font-size: 0.75rem;
-    font-weight: bold;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    text-transform: uppercase;
-    z-index: 2; // Ensure it's above the hover overlay
-  }
   
   .player-info {
     text-align: center;
   }
   
   .player-name {
-    font-size: 1.25rem;
+    font-family: var(--fontTitle);
+    font-size: 1.1rem;
+    text-transform: uppercase;
     font-weight: bold;
     margin-bottom: 0.25rem;
-    color: $gray-900; // Ensure dark text color
+    color: var(--primaryColor);
+    [data-theme="dark"] & {
+      color: var(--accentColor);
+    }
   }
   
   .player-role {
+    font-family: var(--fontMono);
     font-size: 0.875rem;
-    color: $gray-600; // Ensure visible text color
+    text-transform: uppercase;
+    color: var(--textPrimary);
+    [data-theme="light"] & {
+      color: var(--primaryColor);
+    }
     margin-bottom: 1rem;
   }
   
@@ -138,13 +153,19 @@
       align-items: center;
       
       .stat-label {
+        font-family: var(--fontMono);
+        
         font-size: 0.75rem;
-        color: $gray-600;
+        color:  var(--textSecondary);
       }
       
       .stat-value {
+        font-family: var(--fontTitle);
         font-weight: bold;
-        color: $primary-color;
+        color: var(--primaryColor);
+        [data-theme="dark"] & {
+          color: var(--accentColor);
+        }
       }
     }
   }

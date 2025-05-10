@@ -1,36 +1,63 @@
 // src/pages/HallOfFame.tsx
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { cacheService } from '../services/cacheService';
 import Preloader from '../components/common/PreLoader';
+import { getPlayerImage } from '../utils/imageUtils';
 
-// Removed unused HallOfFameData interface
+interface CategoryType {
+  title: string;
+  icon: string;
+  isShame?: boolean;
+}
+
+interface AchievementItem {
+  criteria: string;
+  playerName: string;
+  score: string;
+  playerImage?: string;
+}
 
 function HallOfFame() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hallOfFameData, setHallOfFameData] = useState<string[][]>([]);
+  const [playerImages, setPlayerImages] = useState<Record<string, string>>({});
+  const navigate = useNavigate();
 
-  // Categories for organizing the data
-  const categories = [
-    { title: 'Batting Criteria', color: '#e6f0ff' },
-    { title: 'Bowling Criteria', color: '#e6ffe6' },
-    { title: 'General Criteria', color: '#fff2e6' },
-    { title: 'All Time Criteria', color: '#ffe6e6' }
+  // All achievements and shames based on your criteria
+  const categories: CategoryType[] = [
+    { title: 'Batting Excellence', icon: 'sports_cricket' },
+    { title: 'Bowling Mastery', icon: 'sports_baseball' },
+    { title: 'All-Round Glory', icon: 'stars' },
+    { title: 'Legendary Records', icon: 'emoji_events' }
+  ];
+
+  // Criteria that are considered "Hall of Shame"
+  const shameCriteria = [
+    'Most Ducks',
+    'Most Golden Ducks',
+    'Most Dot balls Faced',
+    'Most Penalty Taken',
+    'Most Dismissals',
+    'Most Runs Given',
+    'Most 2s Given',
+    'Most 4s Given',
+    'Most Extras Given'
   ];
 
   useEffect(() => {
     const fetchHallOfFameData = async () => {
       try {
         setLoading(true);
-        // Fetch summary data which should contain hall of fame info
         const summaryData = await cacheService.fetchSummaryData();
         
-        // Check if the data contains the hallOfFame array
         if (summaryData && summaryData.hallOfFame && Array.isArray(summaryData.hallOfFame)) {
-          // Get only the relevant rows (0-18)
           const relevantData = summaryData.hallOfFame.slice(0, 19);
-          console.log('Hall of Fame Data:', relevantData);
           setHallOfFameData(relevantData);
+          
+          // Load player images
+          await loadPlayerImages(relevantData);
         } else {
           setError('Hall of Fame data not found or in unexpected format');
         }
@@ -45,17 +72,89 @@ function HallOfFame() {
     fetchHallOfFameData();
   }, []);
 
-  // Function to get column indices for each category
-  const getCategoryColumns = (categoryIndex: number) => {
-    // This is based on the data structure shown
-    // Format: [criteria_start, player_start, score_start, criteria_end]
-    switch (categoryIndex) {
-      case 0: return [0, 1, 2, 3]; // Batting Criteria
-      case 1: return [4, 5, 6, 7]; // Bowling Criteria
-      case 2: return [8, 9, 10, 11]; // General Criteria
-      case 3: return [12, 13, 14, 15]; // All Time Criteria
-      default: return [0, 0, 0, 0];
+  const loadPlayerImages = async (data: string[][]) => {
+    const images: Record<string, string> = {};
+    
+    for (let row = 1; row < data.length; row++) {
+      for (let col = 1; col < data[row].length; col += 4) {
+        const playerName = data[row][col];
+        if (playerName && playerName !== '') {
+          try {
+            const imageUrl = await getPlayerImage({ 
+              name: playerName, 
+              playerNameForImage: playerName 
+            });
+            images[playerName] = imageUrl;
+          } catch (error) {
+            console.error(`Error loading image for ${playerName}:`, error);
+          }
+        }
+      }
     }
+    
+    setPlayerImages(images);
+  };
+
+ const getCategoryData = (categoryIndex: number): AchievementItem[] => {
+  const data: AchievementItem[] = [];
+  const cols = getCategoryColumns(categoryIndex);
+  const [criteriaCol, playerCol, scoreCol] = cols;
+  
+  for (let row = 1; row < hallOfFameData.length; row++) {
+    if (hallOfFameData[row][criteriaCol] && hallOfFameData[row][criteriaCol] !== '') {
+      // Special handling for Legendary Records (index 3)
+      if (categoryIndex === 3) {
+        data.push({
+          criteria: hallOfFameData[row][criteriaCol],
+          playerName: '', // No player for all-time stats
+          score: hallOfFameData[row][playerCol], // Value is in the player column
+          playerImage: ''
+        });
+      } else {
+        // Regular handling for other categories
+        data.push({
+          criteria: hallOfFameData[row][criteriaCol],
+          playerName: hallOfFameData[row][playerCol],
+          score: hallOfFameData[row][scoreCol],
+          playerImage: playerImages[hallOfFameData[row][playerCol]]
+        });
+      }
+    }
+  }
+  
+  return data;
+};
+
+  const getCategoryColumns = (categoryIndex: number) => {
+    switch (categoryIndex) {
+      case 0: return [0, 1, 2];
+      case 1: return [4, 5, 6];
+      case 2: return [8, 9, 10];
+      case 3: return [12, 13, 14];
+      default: return [0, 0, 0];
+    }
+  };
+
+  const handlePlayerClick = (playerName: string) => {
+    navigate(`/players/${playerName}`);
+  };
+
+  // Format score to 2 decimal places if it's a float
+  const formatScore = (score: string): string => {
+    const numericScore = parseFloat(score);
+    if (isNaN(numericScore)) return score;
+    
+    // Check if it's a float
+    if (numericScore % 1 !== 0) {
+      return numericScore.toFixed(2);
+    }
+    
+    return score;
+  };
+
+  // Check if criteria is a "shame"
+  const isShame = (criteria: string): boolean => {
+    return shameCriteria.some(shame => criteria.includes(shame));
   };
 
   if (loading) {
@@ -78,35 +177,108 @@ function HallOfFame() {
     );
   }
 
-  // Header row exists at index 0
-//   const headerRow = hallOfFameData.length > 0 ? hallOfFameData[0] : [];
-
   return (
     <div className="hall-of-fame-page">
       <div className="container">
-        <h1 className="section-title">Hall of Fame</h1>
-        <p className="section-subtitle">Celebrating our top performers across all categories</p>
+        <h1 className="section-title">HALL OF FAME</h1>
+        <p className="section-description">
+          "Celebrating the extraordinary achievements and memorable moments"
+        </p>
 
-        <div className="hall-of-fame-grid">
-          {categories.map((category, categoryIndex) => {
-            const [criteriaCol, playerCol, scoreCol] = getCategoryColumns(categoryIndex);
+        <div className="hall-of-fame-sections">
+          {categories.map((category, index) => {
+            const achievements = getCategoryData(index);
             
+            // Special handling for Legendary Records (index 3)
+            if (index === 3) {
+              return (
+                <div key={index} className="category-section">
+                  <div className="category-header">
+                    <i className="material-icons category-icon">{category.icon}</i>
+                    <h2 className="category-title">{category.title}</h2>
+                  </div>
+                  
+                  <div className="table-wrapper">
+                    <table className="achievements-table legendary-table">
+                      <thead>
+                        <tr>
+                          <th className="stat-column">All-Time Statistic</th>
+                          <th className="value-column"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {achievements.map((achievement, achievementIndex) => (
+                          <tr key={achievementIndex} className="stat-row">
+                            <td className="stat-cell">
+                              <div className="stat-info">
+                                <span className="stat-name">{achievement.criteria}</span>
+                              </div>
+                            </td>
+                            <td className="value-cell">
+                              <span className="stat-value">
+                                {formatScore(achievement.score)}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            }
+            
+            // Regular rendering for other categories
             return (
-              <div key={categoryIndex} className="category-section" style={{ backgroundColor: category.color }}>
-                <h2 className="category-title">{category.title}</h2>
-                <div className="category-items">
-                  {hallOfFameData.slice(1, 19).map((row, rowIndex) => {
-                    // Skip empty rows
-                    if (!row[criteriaCol] || row[criteriaCol] === '') return null;
-                    
-                    return (
-                      <div key={rowIndex} className="achievement-item">
-                        <div className="achievement-criteria">{row[criteriaCol]}</div>
-                        <div className="achievement-player">{row[playerCol]}</div>
-                        <div className="achievement-score">{row[scoreCol]}</div>
-                      </div>
-                    );
-                  })}
+              <div key={index} className="category-section">
+                <div className="category-header">
+                  <i className="material-icons category-icon">{category.icon}</i>
+                  <h2 className="category-title">{category.title}</h2>
+                </div>
+                
+                <div className="table-wrapper">
+                  <table className="achievements-table">
+                    <thead>
+                      <tr>
+                        <th className="rank-column">#</th>
+                        <th className="criteria-column">Achievement</th>
+                        <th className="player-column">Player</th>
+                        <th className="score-column">Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {achievements.map((achievement, achievementIndex) => (
+                        <tr 
+                          key={achievementIndex}
+                          className={`achievement-row ${isShame(achievement.criteria) ? 'shame-row' : ''}`}
+                          onClick={() => handlePlayerClick(achievement.playerName)}
+                        >
+                          <td className="rank-cell">
+                            <div className={`rank-badge ${isShame(achievement.criteria) ? 'shame-badge' : ''}`}>
+                              {achievementIndex + 1}
+                            </div>
+                          </td>
+                          <td className="criteria-cell">
+                            {achievement.criteria}
+                          </td>
+                          <td className="player-cell">
+                            <div className="player-info">
+                              <div 
+                                className="player-image"
+                                style={{ backgroundImage: `url(${achievement.playerImage})` }}
+                              />
+                              <span className="player-name">{achievement.playerName}</span>
+                            </div>
+                          </td>
+                          <td className="score-cell">
+                            <span className={`score-value ${isShame(achievement.criteria) ? 'shame-score' : ''}`}>
+                              {formatScore(achievement.score)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             );
@@ -114,8 +286,18 @@ function HallOfFame() {
         </div>
 
         <div className="notes-section">
-          <p><strong>Note:</strong> Stats are stored starting from 10/04/2025.</p>
-          <p><strong>Note:</strong> If multiple players have the same score, the one having the better rank is considered.</p>
+          <div className="note-item">
+            <i className="material-icons">info_outline</i>
+            <p>Stats are recorded starting from 10/04/2025.</p>
+          </div>
+          <div className="note-item">
+            <i className="material-icons">priority_high</i>
+            <p>For ties, the player with the better overall rank is given preference.</p>
+          </div>
+          <div className="note-item">
+            <i className="material-icons">warning</i>
+            <p>Red highlighted entries represent "Hall of Shame" records.</p>
+          </div>
         </div>
       </div>
     </div>

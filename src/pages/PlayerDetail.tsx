@@ -1,7 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/PlayerDetail.tsx
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { 
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+  Tooltip, Legend, ResponsiveContainer, AreaChart, Area, RadarChart,
+  PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, PieChart, Pie, Cell
+} from 'recharts';
 import { usePlayerData } from '../hooks/usePlayerData';
 import { getPlayerImage } from '../utils/imageUtils';
 import { PlayerData } from '../types/playerTypes';
@@ -47,30 +52,40 @@ interface PerformanceData {
   economy?: number | string;
 }
 
-// Define which columns to display in the matches table
-// const matchColumnsToDisplay = [
-//   'Date',
-//   'Runs Scored',
-//   'Balls Faced',
-//   'Dismissals',
-//   'Runs Given',
-//   'Balls Bowled',
-//   'Wickets Taken',
-//   'Dots Taken',
-//   'Twos Takes',
-//   'Fours Taken',
-//   'Penalty',
-//   'Dots Given',
-//   'Twos Given',
-//   'Fours Given',
-//   'Extras',
-//   'Hattricks',
-//   'Maidens',
-//   'Match Score',
-//   'Man of the Match',
-//   'Team Name',
-//   'Result'
-// ];
+// Define thresholds for determining good/bad stats
+type ThresholdMetric = {
+  good: number;
+  bad: number;
+};
+
+type ThresholdCategory = {
+  [key: string]: ThresholdMetric;
+};
+
+const THRESHOLDS: {
+  batting: ThresholdCategory;
+  bowling: ThresholdCategory;
+  overall: ThresholdCategory;
+} = {
+  batting: {
+    average: { good: 30, bad: 15 },
+    strikeRate: { good: 120, bad: 80 },
+    fifties: { good: 1, bad: 0 },
+    ducks: { good: 1, bad: 3 },
+    boundaryPercentage: { good: 15, bad: 5 }
+  },
+  bowling: {
+    average: { good: 25, bad: 40 },
+    economy: { good: 6, bad: 8 },
+    strikeRate: { good: 20, bad: 35 },
+    threeWickets: { good: 1, bad: 0 },
+    maidens: { good: 3, bad: 0 }
+  },
+  overall: {
+    winPercentage: { good: 50, bad: 30 },
+    momAwards: { good: 3, bad: 0 }
+  }
+};
 
 function PlayerDetail() {
   const { id } = useParams<{ id: string }>();
@@ -80,29 +95,26 @@ function PlayerDetail() {
   const [playerMatches, setPlayerMatches] = useState<MatchData[]>([]);
   const [loading, setLoading] = useState(true);
   const [openModalIndex, setOpenModalIndex] = useState<number | null>(null);
+  const [selectedTab, setSelectedTab] = useState<'batting' | 'bowling' | 'overall'>('batting');
   
   // Determine player role based on stats
   const determinePlayerRole = (playerData: PlayerData): string => {
     const BATTING_RATING_THRESHOLD = 150; 
     const BOWLING_RATING_THRESHOLD = 50;
     
-    // Check if player meets both criteria for an all-rounder
     if (playerData.battingRating >= BATTING_RATING_THRESHOLD && 
         playerData.bowlingRating >= BOWLING_RATING_THRESHOLD) {
       return 'All-Rounder';
     }
     
-    // Check if player is primarily a batsman
     if (playerData.battingRating >= BATTING_RATING_THRESHOLD) {
       return 'Batsman';
     }
     
-    // Check if player is primarily a bowler
     if (playerData.bowlingRating >= BOWLING_RATING_THRESHOLD) {
       return 'Bowler';
     }
     
-    // When nothing meets the criteria, return N/A instead of a default
     return 'N/A';
   };
   
@@ -110,32 +122,22 @@ function PlayerDetail() {
   useEffect(() => {
     if (!id) return;
     
-    // Check if we already have this player and just need their matches
     if (player && player.name === id && playerMatches.length === 0) {
       loadPlayerMatches(id);
       return;
     }
     
-    // Find player from the players list
     if (!playersLoading && players.length > 0) {
       const foundPlayer = players.find(p => p.name === id);
       
       if (foundPlayer) {
-        console.log("Player found in list:", foundPlayer.name);
-        console.log("Batting rating:", foundPlayer.battingRating);
-        console.log("Bowling rating:", foundPlayer.bowlingRating);
-        
-        // Determine role based on ratings with the correct thresholds
         const playerRole = determinePlayerRole(foundPlayer);
-        console.log("Calculated role:", playerRole);
         
-        // Set player with correct role
         setPlayer({
           ...foundPlayer,
           role: playerRole
         });
         
-        // Load player images and matches
         loadPlayerImageAndMatches(foundPlayer);
       } else {
         setLoading(false);
@@ -147,13 +149,11 @@ function PlayerDetail() {
   // Function to load player image
   const loadPlayerImageAndMatches = useCallback(async (playerData: PlayerData) => {
     try {
-      // Load image first to prevent issues with image loading on navigation
       const imageUrl = await getPlayerImage({
         name: playerData.name,
         playerNameForImage: playerData.playerNameForImage
       });
       
-      // Update player with image
       setPlayer(prevPlayer => {
         if (!prevPlayer) return null;
         return {
@@ -162,11 +162,9 @@ function PlayerDetail() {
         };
       });
       
-      // Now load the matches data
       loadPlayerMatches(playerData.name);
     } catch (error) {
       console.error("Error loading player image:", error);
-      // Still try to load matches even if image fails
       loadPlayerMatches(playerData.name);
     }
   }, []);
@@ -174,16 +172,13 @@ function PlayerDetail() {
   // Load match data
   const loadPlayerMatches = async (playerName: string) => {
     try {
-      // Fetch player matches from cache or API
       const playerDetails = await cacheService.fetchPlayerDetails(playerName);
       
       if (playerDetails && playerDetails.matches && Array.isArray(playerDetails.matches)) {
-        // Process match data - safely handle headers
         if (playerDetails.matches.length > 0) {
           const headerRow = playerDetails.matches[0]; 
           const headers = headerRow.map(item => String(item));
           
-          // Process data rows
           const matchData = playerDetails.matches.slice(1).map((row: Array<string | number>) => {
             const match: MatchData = {};
             headers.forEach((header: string, index: number) => {
@@ -194,7 +189,6 @@ function PlayerDetail() {
           
           setPlayerMatches(matchData);
           
-          // Update performance data
           setPlayer(prevPlayer => {
             if (!prevPlayer) return null;
             
@@ -225,25 +219,107 @@ function PlayerDetail() {
     navigate(-1);
   };
   
+  // Custom tooltip for charts
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="custom-tooltip">
+          <p className="label">{`${label}`}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} style={{ color: entry.color }}>
+              {`${entry.name}: ${entry.value}`}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
 
-  
+  // Function to determine stat quality
+  const getStatQuality = (value: number, category: 'batting' | 'bowling' | 'overall', metric: string): 'good' | 'bad' | 'normal' => {
+    const threshold = THRESHOLDS[category][metric];
+    if (!threshold) return 'normal';
+    
+    // For stats where lower is better (ducks, economy, bowling average)
+    const lowerIsBetter = ['ducks', 'economy', 'average'].includes(metric) && category === 'bowling';
+    
+    if (lowerIsBetter) {
+      if (value <= threshold.good) return 'good';
+      if (value >= threshold.bad) return 'bad';
+    } else {
+      if (value >= threshold.good) return 'good';
+      if (value <= threshold.bad) return 'bad';
+    }
+    
+    return 'normal';
+  };
+
+  // Prepare data for radar chart
+  const prepareRadarData = () => {
+    if (!player) return [];
+    
+    return [
+      {
+        stat: 'Batting Avg',
+        value: Math.round(player.battingAverage),
+        fullMark: 50,
+      },
+      {
+        stat: 'Strike Rate',
+        value: Math.round(player.strikeRate),
+        fullMark: 150,
+      },
+      {
+        stat: 'Bowling Avg',
+        value: Math.round(player.bowlingAverage),
+        fullMark: 50,
+      },
+      {
+        stat: 'Economy',
+        value: parseFloat(player.economy.toFixed(1)),
+        fullMark: 10,
+      },
+      {
+        stat: 'Win %',
+        value: Math.round(player.winPercentage),
+        fullMark: 100,
+      }
+    ];
+  };
+
+  // Prepare data for pie chart (shot distribution)
+  const prepareShotDistribution = () => {
+    if (!player) return [];
+    
+    const total = player.dotsTaken + player.singlesTaken + player.twosTaken + player.foursTaken;
+    return [
+      { name: 'Dots', value: (player.dotsTaken / total) * 100, color: '#FF6B6B' },
+      { name: 'Singles', value: (player.singlesTaken / total) * 100, color: '#4ECDC4' },
+      { name: 'Twos', value: (player.twosTaken / total) * 100, color: '#45B7D1' },
+      { name: 'Fours', value: (player.foursTaken / total) * 100, color: '#96CEB4' }
+    ];
+  };
+
   const renderMatchModals = () => {
     if (!playerMatches || playerMatches.length === 0) {
-      return <p>No match data available</p>;
+      return <div className="no-data">No match data available</div>;
     }
     
     return (
-    <div className="matches-container">
-      {playerMatches.map((match, index) => (
-        <MatchModal 
-          key={index} 
-          match={match} 
-          index={index}
-          openModalIndex={openModalIndex}
-          setOpenModalIndex={setOpenModalIndex}
-        />
-      ))}
-    </div>
+      <div className="matches-container">
+        {playerMatches.map((match, index) => (
+          <div key={index} className="match-item-wrapper">
+            <MatchModal 
+              match={match} 
+              index={index}
+              openModalIndex={openModalIndex}
+              setOpenModalIndex={setOpenModalIndex}
+            />
+          </div>
+        ))}
+      </div>
     );
   };
   
@@ -277,230 +353,301 @@ function PlayerDetail() {
     );
   }
   
-  // Make sure we have performanceData to avoid rendering errors
   const performanceData = player.performanceData || [];
+  const radarData = prepareRadarData();
+  const shotDistribution = prepareShotDistribution();
   
   return (
     <div className="player-detail-page">
       <div className="container">
         <div className="back-button-container">
           <button className="btn btn-sm btn-secondary back-button" onClick={handleGoBack}>
-            &larr; Back to Players
+            <i className="material-icons">arrow_back</i>
+            <span>Back to Players</span>
           </button>
         </div>
         
-        <section className="section player-header">
-          <div className="player-profile">
-            <div className="player-image-container">
+        {/* Hero Section */}
+        <section className="player-hero">
+          <div className="hero-background">
+            <div className="hero-pattern"></div>
+          </div>
+          <div className="hero-content">
+            <div className="player-image-wrapper">
               <div 
                 className="player-image" 
                 style={{ backgroundImage: `url(${player.imageUrl || player.fallbackImageUrl})` }}
               />
-              <div className="player-team">Rank #{player.rank}</div>
+              <div className="player-rank">#{player.rank}</div>
             </div>
             <div className="player-info">
               <h1 className="player-name">{player.name}</h1>
               <p className="player-role">{player.role}</p>
-              <div className="player-contact">
-                <div className="contact-item">
-                  <span className="label">Matches:</span>
-                  <span className="value">{player.matches}</span>
+              <div className="player-quick-stats">
+                <div className="quick-stat">
+                  <span className="stat-value">{player.matches}</span>
+                  <span className="stat-label">Matches</span>
                 </div>
-                <div className="contact-item">
-                  <span className="label">Win %:</span>
-                  <span className="value">{player.winPercentage.toFixed(1)}%</span>
+                <div className={`quick-stat ${getStatQuality(player.winPercentage, 'overall', 'winPercentage')}`}>
+                  <span className="stat-value">{player.winPercentage.toFixed(1)}%</span>
+                  <span className="stat-label">Win Rate</span>
                 </div>
-                <div className="contact-item">
-                  <span className="label">MoM Awards:</span>
-                  <span className="value">{player.momAwards}</span>
+                <div className={`quick-stat ${getStatQuality(player.momAwards, 'overall', 'momAwards')}`}>
+                  <span className="stat-value">{player.momAwards}</span>
+                  <span className="stat-label">MoM Awards</span>
                 </div>
               </div>
             </div>
           </div>
         </section>
-        
-      
 
-      <section className="section player-statistics">
-        <h2 className="section-title">Player Statistics</h2>
-        
-        <div className="stats-grid">
-          <div className="card">
-            <div className="card-header">
-              <h3>Batting Stats</h3>
+        {/* Performance Overview */}
+        <section className="performance-overview">
+          <h2 className="section-title">Performance Overview</h2>
+          <div className="overview-grid">
+            <div className="overview-card radar-card">
+              <h3>Player Radar</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <RadarChart data={radarData}>
+                  <PolarGrid strokeDasharray="3 3" />
+                  <PolarAngleAxis dataKey="stat" />
+                  <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                  <Radar
+                    name={player.name}
+                    dataKey="value"
+                    stroke="var(--primaryColor)"
+                    fill="var(--primaryColor)"
+                    fillOpacity={0.6}
+                  />
+                  <Tooltip content={CustomTooltip} />
+                </RadarChart>
+              </ResponsiveContainer>
             </div>
-            <div className="card-body">
-              <div className="stats-list">
-                <div className="stat-item">
-                  <span className="label">Matches / Innings</span>
-                  <span className="value">{player.matches} / {player.innings}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Runs</span>
-                  <span className="value">{player.runsScored}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Highest Score</span>
-                  <span className="value">{player.highestScore}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Average</span>
-                  <span className="value">{player.battingAverage.toFixed(2)}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Strike Rate</span>
-                  <span className="value">{player.strikeRate.toFixed(2)}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">30s / 50s / 70s</span>
-                  <span className="value">{player.thirties} / {player.fifties} / {player.seventies}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Boundary %</span>
-                  <span className="value">{player.boundaryPercentage.toFixed(2)}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Dots / Singles / Twos / Fours</span>
-                  <span className="value">{player.dotsTaken} / {player.singlesTaken} / {player.twosTaken} / {player.foursTaken}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Penalty</span>
-                  <span className="value">{player.extras || 0}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Ducks / Golden Ducks</span>
-                  <span className="value">{player.ducks} / {player.goldenDucks}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="card">
-            <div className="card-header">
-              <h3>Bowling Stats</h3>
-            </div>
-            <div className="card-body">
-              <div className="stats-list">
-                <div className="stat-item">
-                  <span className="label">Wickets</span>
-                  <span className="value">{player.wicketsTaken}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Runs Given</span>
-                  <span className="value">{player.runsGiven}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Balls Bowled</span>
-                  <span className="value">{player.ballsBowled}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Economy</span>
-                  <span className="value">{player.economy.toFixed(2)}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Average</span>
-                  <span className="value">{player.bowlingAverage > 0 ? player.bowlingAverage.toFixed(2) : 'N/A'}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Strike Rate</span>
-                  <span className="value">{player.bowlingStrikeRate.toFixed(2)}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Best Bowling</span>
-                  <span className="value">{player.bestBowling || 'N/A'}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">3W / 5W</span>
-                  <span className="value">{player.threeWickets} / {player.fiveWickets}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Hattricks</span>
-                  <span className="value">{player.hattricks}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Maidens</span>
-                  <span className="value">{player.maidens}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Dots / Twos / Fours / Extras</span>
-                  <span className="value">{player.dotsGiven} / {player.twosGiven} / {player.foursGiven} / {player.extras}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="card">
-            <div className="card-header">
-              <h3>Rating Stats</h3>
-            </div>
-            <div className="card-body">
-              <div className="stats-list">
-                <div className="stat-item">
-                  <span className="label">Batting Rating</span>
-                  <span className="value">{player.battingRating.toFixed(2)}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Bowling Rating</span>
-                  <span className="value">{player.bowlingRating.toFixed(2)}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">All-Rounder Rating</span>
-                  <span className="value">{player.allRounderRating.toFixed(2)}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="label">Overall Rating</span>
-                  <span className="value">{player.overallRating}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-        
-        <section className="section player-performance">
-          <h2 className="section-title">Performance</h2>
-          
-          <div className="charts-grid">
-            <div className="card">
-              <div className="card-header">
-                <h3>Runs per Match</h3>
-              </div>
-              <div className="card-body chart-container">
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={performanceData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="match" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="runs" stroke="#8884d8" activeDot={{ r: 8 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-            
-            <div className="card">
-              <div className="card-header">
-                <h3>Wickets per Match</h3>
-              </div>
-              <div className="card-body chart-container">
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={performanceData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="match" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="wickets" fill="#82ca9d" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+            <div className="overview-card pie-card">
+              <h3>Shot Distribution</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={shotDistribution}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    label={({name, value}) => `${name} ${value.toFixed(1)}%`}
+                  >
+                    {shotDistribution.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={CustomTooltip} />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </section>
+
+        {/* Tabbed Statistics */}
+        <section className="player-statistics">
+          <div className="stats-tabs">
+            <button 
+              className={`tab-button ${selectedTab === 'batting' ? 'active' : ''}`}
+              onClick={() => setSelectedTab('batting')}
+            >
+              Batting
+            </button>
+            <button 
+              className={`tab-button ${selectedTab === 'bowling' ? 'active' : ''}`}
+              onClick={() => setSelectedTab('bowling')}
+            >
+              Bowling
+            </button>
+            <button 
+              className={`tab-button ${selectedTab === 'overall' ? 'active' : ''}`}
+              onClick={() => setSelectedTab('overall')}
+            >
+              Overall
+            </button>
+          </div>
+
+          <div className="tab-content">
+            {selectedTab === 'batting' && (
+              <div className="stats-content batting-stats">
+                <div className="stats-grid">
+                  <div className={`stat-card ${getStatQuality(player.battingAverage, 'batting', 'average')}`}>
+                    <div className="stat-value">{player.battingAverage.toFixed(2)}</div>
+                    <div className="stat-label">Average</div>
+                  </div>
+                  <div className={`stat-card ${getStatQuality(player.strikeRate, 'batting', 'strikeRate')}`}>
+                    <div className="stat-value">{player.strikeRate.toFixed(2)}</div>
+                    <div className="stat-label">Strike Rate</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.runsScored}</div>
+                    <div className="stat-label">Total Runs</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.highestScore}</div>
+                    <div className="stat-label">Highest Score</div>
+                  </div>
+                  <div className={`stat-card ${getStatQuality(player.fifties, 'batting', 'fifties')}`}>
+                    <div className="stat-value">{player.fifties}</div>
+                    <div className="stat-label">Fifties</div>
+                  </div>
+                  <div className={`stat-card ${getStatQuality(player.ducks, 'batting', 'ducks')}`}>
+                    <div className="stat-value">{player.ducks}</div>
+                    <div className="stat-label">Ducks</div>
+                  </div>
+                </div>
+
+                {/* Batting Performance Chart */}
+                <div className="performance-chart">
+                  <h3>Runs Progression</h3>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <AreaChart data={performanceData}>
+                      <defs>
+                        <linearGradient id="runsGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--primaryColor)" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="var(--primaryColor)" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="match" angle={-45} textAnchor="end" height={60} />
+                      <YAxis />
+                      <Tooltip content={CustomTooltip} />
+                      <Area 
+                        type="monotone" 
+                        dataKey="runs" 
+                        stroke="var(--primaryColor)" 
+                        fillOpacity={1} 
+                        fill="url(#runsGradient)" 
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {selectedTab === 'bowling' && (
+              <div className="stats-content bowling-stats">
+                <div className="stats-grid">
+                  <div className={`stat-card ${getStatQuality(player.bowlingAverage, 'bowling', 'average')}`}>
+                    <div className="stat-value">{player.bowlingAverage > 0 ? player.bowlingAverage.toFixed(2) : 'N/A'}</div>
+                    <div className="stat-label">Average</div>
+                  </div>
+                  <div className={`stat-card ${getStatQuality(player.economy, 'bowling', 'economy')}`}>
+                    <div className="stat-value">{player.economy.toFixed(2)}</div>
+                    <div className="stat-label">Economy</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.wicketsTaken}</div>
+                    <div className="stat-label">Total Wickets</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.bestBowling || 'N/A'}</div>
+                    <div className="stat-label">Best Bowling</div>
+                  </div>
+                  <div className={`stat-card ${getStatQuality(player.threeWickets, 'bowling', 'threeWickets')}`}>
+                    <div className="stat-value">{player.threeWickets}</div>
+                    <div className="stat-label">3W Hauls</div>
+                  </div>
+                  <div className={`stat-card ${getStatQuality(player.maidens, 'bowling', 'maidens')}`}>
+                    <div className="stat-value">{player.maidens}</div>
+                    <div className="stat-label">Maidens</div>
+                  </div>
+                </div>
+
+                {/* Bowling Performance Chart */}
+                <div className="performance-chart">
+                  <h3>Wickets Distribution</h3>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={performanceData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="match" angle={-45} textAnchor="end" height={60} />
+                      <YAxis />
+                      <Tooltip content={CustomTooltip} />
+                      <Bar dataKey="wickets" fill="var(--accentColor)" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {selectedTab === 'overall' && (
+              <div className="stats-content overall-stats">
+                <div className="stats-grid">
+                  <div className="stat-card">
+                    <div className="stat-value">{player.overallRating}</div>
+                    <div className="stat-label">Overall Rating</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.battingRating.toFixed(0)}</div>
+                    <div className="stat-label">Batting Rating</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.bowlingRating.toFixed(0)}</div>
+                    <div className="stat-label">Bowling Rating</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.allRounderRating.toFixed(0)}</div>
+                    <div className="stat-label">All-Rounder Rating</div>
+                  </div>
+                </div>
+
+                {/* Combined Performance Chart */}
+                <div className="performance-chart">
+                  <h3>Match Impact</h3>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={performanceData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="match" angle={-45} textAnchor="end" height={60} />
+                      <YAxis yAxisId="left" orientation="left" stroke="var(--primaryColor)" />
+                      <YAxis yAxisId="right" orientation="right" stroke="var(--accentColor)" />
+                      <Tooltip content={CustomTooltip} />
+                      <Legend />
+                      <Line 
+                        yAxisId="left"
+                        type="monotone" 
+                        dataKey="runs" 
+                        stroke="var(--primaryColor)" 
+                        strokeWidth={2}
+                        dot={{ fill: 'var(--primaryColor)' }}
+                      />
+                      <Line 
+                        yAxisId="right"
+                        type="monotone" 
+                        dataKey="wickets" 
+                        stroke="var(--accentColor)" 
+                        strokeWidth={2}
+                        dot={{ fill: 'var(--accentColor)' }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
         
-        <section className="section player-matches">
-          <h2 className="section-title">Match Statistics</h2>
+        {/* Match History */}
+        <section className="player-matches">
+          <h2 className="section-title">Match History</h2>
+          <div className="matches-header">
+            <div className="total-matches">
+              <span className="count">{playerMatches.length}</span>
+              <span className="label">Total Matches</span>
+            </div>
+            <div className="wins-losses">
+              <div className="wins">
+                <span className="count">{playerMatches.filter(m => m.Result === 'Won').length}</span>
+                <span className="label">Wins</span>
+              </div>
+              <div className="losses">
+                <span className="count">{playerMatches.filter(m => m.Result === 'Lost').length}</span>
+                <span className="label">Losses</span>
+              </div>
+            </div>
+          </div>
           {renderMatchModals()}
         </section>
       </div>

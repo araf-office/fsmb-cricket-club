@@ -2,9 +2,13 @@
 export type ThemeType = 'light' | 'dark';
 
 export const themeService = {
-  getCurrentTheme(): ThemeType {
+ getCurrentTheme(): ThemeType {
     const storedTheme = localStorage.getItem('theme');
-    return storedTheme === 'dark' ? 'dark' : 'light';
+    // If no theme is stored, default to dark
+    if (!storedTheme) {
+      return 'dark';
+    }
+    return storedTheme === 'light' ? 'light' : 'dark';
   },
 
   applyTheme(theme: ThemeType): void {
@@ -26,6 +30,8 @@ export const themeService = {
       boxShadowInset: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)',
       headerColor: '#121A1C',
       footerColor: '#121A1C',
+      overlayColor: 'rgba(43, 117, 130, 0.685)',
+      glassColor: 'rgba(255, 255, 255, 0.2)',
 
     };
 
@@ -47,6 +53,8 @@ export const themeService = {
       boxShadowInset: 'inset 0 1px 2px rgba(255, 255, 255, 0.05)',
       headerColor: '#2B7582',
       footerColor: '#070b0d',
+      overlayColor: 'rgba(255, 128, 0, 0.56)',
+      glassColor: 'rgba(18, 26, 28, 0.35)',
     };
 
     const colors = theme === 'dark' ? darkColors : lightColors;
