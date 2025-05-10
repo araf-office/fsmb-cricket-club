@@ -1,8 +1,10 @@
 // src/styles/components/common/_footer.scss
 .footer {
-    background-color: #212529;
-    color: white;
+    background-color: var(--footerColor);
+    color: rgb(187, 187, 187);
     padding: 2rem 0;
+    font-size: 0.86rem;
+    font-family: var(--fontMono);
   
     .container {
       max-width: 1200px;
@@ -22,7 +24,7 @@
   
     .footer-col {
       h3 {
-        font-size: 1.25rem;
+        font-size: 1rem;
         margin-bottom: 1rem;
         font-weight: bold;
       }

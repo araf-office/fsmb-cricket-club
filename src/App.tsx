@@ -4,15 +4,29 @@ import Home from './pages/Home'
 import Players from './pages/Players'
 import PlayerDetail from './pages/PlayerDetail'
 import Leaderboard from './pages/Leaderboard'
-import HallOfFame from './pages/HallofFame'
+import HallOfFame from './pages/HallOfFame'
 
+import { themeService } from './services/themeService'
+import { fontService } from './services/fontService'
 import Header from './components/common/Header'
 import Footer from './components/common/Footer'
 import GoToTop from './components/common/GoToTop'
 import './App.scss'
+import { useEffect } from 'react'
 
 
 function App() {
+  useEffect(() => {
+  // Initialize theme on app load
+  themeService.initializeTheme();
+}, []);
+useEffect(() => {
+  // Initialize theme on app load
+  themeService.initializeTheme();
+  
+  // Initialize fonts
+  fontService.initializeFonts();
+}, []);
   return (
     <BrowserRouter>
       <div className="app">

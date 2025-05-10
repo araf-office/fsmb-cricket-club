@@ -8,7 +8,7 @@ interface StatsData {
   totalRunsScored: number;
   totalBallsBowled: number;
   allTimeHighestScore: number;
-  highestScorePlayer: string;
+  totalWickets: number;  // Changed from highestScorePlayer to totalWickets
 }
 
 type DataRow = Array<string | number>;
@@ -21,7 +21,7 @@ function TeamStats() {
     totalRunsScored: 0,
     totalBallsBowled: 0,
     allTimeHighestScore: 0,
-    highestScorePlayer: ''
+    totalWickets: 0  // Changed from highestScorePlayer to totalWickets
   });
   
   const [, setLoading] = useState(true);
@@ -60,7 +60,7 @@ function TeamStats() {
       totalRunsScored: 0,
       totalBallsBowled: 0,
       allTimeHighestScore: 0,
-      highestScorePlayer: ''
+      totalWickets: 0  // Changed from highestScorePlayer to totalWickets
     };
     
     if (!playersData || playersData.length < 2) {
@@ -78,15 +78,7 @@ function TeamStats() {
       const runsIndex = findColumnIndex(headers, ['Runs Scored', 'runs scored', 'runs']);
       const ballsBowledIndex = findColumnIndex(headers, ['Balls Bowled', 'balls bowled']);
       const highestScoreIndex = findColumnIndex(headers, ['Highest Score', 'highest score']);
-      const playerNameIndex = findColumnIndex(headers, ['Player Name', 'player name', 'name']);
-      
-      console.log("Column indices found:", {
-        matches: matchesIndex,
-        runs: runsIndex,
-        ballsBowled: ballsBowledIndex,
-        highestScore: highestScoreIndex,
-        playerName: playerNameIndex
-      });
+      const wicketsIndex = findColumnIndex(headers, ['Wickets Taken', 'wickets taken', 'wickets']);  // Add wickets column
       
       // Extract stats data
       const dataRows = playersData.slice(1); // Skip header row
@@ -96,7 +88,7 @@ function TeamStats() {
       let totalRuns = 0;
       let totalBallsBowled = 0;
       let maxHighScore = 0;
-      let highScorePlayer = '';
+      let totalWickets = 0;  // Changed from highScorePlayer string to totalWickets number
       
       for (const row of dataRows) {
         // Process matches count (find highest value)
@@ -132,11 +124,15 @@ function TeamStats() {
             const score = Number(scoreMatch[0]);
             if (!isNaN(score) && score > maxHighScore) {
               maxHighScore = score;
-              // Get player name if available
-              if (playerNameIndex !== -1 && row[playerNameIndex] !== undefined) {
-                highScorePlayer = String(row[playerNameIndex]);
-              }
             }
+          }
+        }
+        
+        // Sum total wickets taken
+        if (wicketsIndex !== -1 && row[wicketsIndex] !== undefined) {
+          const wickets = Number(row[wicketsIndex]);
+          if (!isNaN(wickets)) {
+            totalWickets += wickets;
           }
         }
       }
@@ -146,7 +142,7 @@ function TeamStats() {
         totalRunsScored: totalRuns,
         totalBallsBowled: totalBallsBowled,
         allTimeHighestScore: maxHighScore,
-        highestScorePlayer: highScorePlayer
+        totalWickets: totalWickets  // Return totalWickets
       };
     } catch (error) {
       console.error("Error calculating all-time stats:", error);
@@ -182,11 +178,10 @@ function TeamStats() {
 
   return (
     <section className="team-stats" id="team-stats">
-      <h2 className="section-title">Match Statistics</h2>
+      <h2 className="section-title">Legacy of Matches</h2>
       
       {/* All-time statistics from player data */}
       <div className="season-stats">
-        <h3>All-Time Statistics</h3>
         <div className="stats-row">
           <div className="stat-item">
             <span className="stat-label">Total Matches</span>
@@ -201,11 +196,8 @@ function TeamStats() {
             <span className="stat-value">{allTimeStats.totalBallsBowled}</span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">Highest Score</span>
-            <span className="stat-value">{allTimeStats.allTimeHighestScore}</span>
-            {allTimeStats.highestScorePlayer && (
-              <span className="stat-detail">by {allTimeStats.highestScorePlayer}</span>
-            )}
+            <span className="stat-label">Total Wickets</span>
+            <span className="stat-value">{allTimeStats.totalWickets}</span>
           </div>
         </div>
       </div>

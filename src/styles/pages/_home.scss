@@ -1,46 +1,23 @@
 // src/styles/pages/_home.scss
 .home-page {
+  background-color: var(--backgroundColor);
+  transition: background-color 0.3s ease;
+  
   .container {
     padding: 2rem 1rem;
   }
   
   .section {
     margin-bottom: 3rem;
+    background-color: var(--backgroundColor);
   }
-  
-  // Go to top button
-  .go-to-top {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    background-color: var(--primary-color, #2D7783);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-    z-index: 100;
-    
-    &:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-    
-    i {
-      font-size: 24px;
-    }
-  }
-  
+
   // No data message styling
   .no-data {
     text-align: center;
     padding: 2rem;
-    color: #6c757d;
+    color: var(--textPrimary);
+    opacity: 0.7;
     font-style: italic;
   }
 }
@@ -52,28 +29,34 @@
     font-weight: bold;
     margin-bottom: 1.5rem;
     text-align: center;
-    color: #212529;
+    color: var(--textPrimary);
     
     &:after {
       content: '';
       display: block;
       width: 50px;
       height: 3px;
-      background-color: #2D7783;
+      background-color: var(--primaryColor);
       margin: 1rem auto 0;
     }
   }
   
   .card {
-    background-color: white;
+    background-color: var(--surfaceColor);
     border-radius: 0.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    transition: background-color 0.3s ease;
+    
+    // Adjust shadow for dark theme
+    [data-theme="dark"] & {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+    }
   }
   
   .results-list {
     .result-item {
-      border-bottom: 1px solid #e9ecef;
+      border-bottom: 1px solid var(--borderColor);
       padding: 1.25rem;
       
       &:last-child {
@@ -85,7 +68,8 @@
           .result-date {
             display: block;
             font-size: 0.875rem;
-            color: #6c757d;
+            color: var(--textPrimary);
+            opacity: 0.7;
             margin-bottom: 0.5rem;
           }
           
@@ -94,7 +78,7 @@
             font-size: 1.25rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
-            color: #212529;
+            color: var(--textPrimary);
           }
           
           .result-score {
@@ -102,21 +86,23 @@
             font-size: 1.125rem;
             font-weight: 500;
             margin-bottom: 0.5rem;
-            color: #2D7783;
+            color: var(--primaryColor);
           }
           
           .result-outcome {
             display: block;
             font-size: 1rem;
             margin-bottom: 0.5rem;
-            color: #495057;
+            color: var(--textPrimary);
+            opacity: 0.8;
           }
           
           .man-of-match {
             display: block;
             font-size: 0.875rem;
             font-weight: 500;
-            color: #6c757d;
+            color: var(--textPrimary);
+            opacity: 0.7;
           }
         }
       }

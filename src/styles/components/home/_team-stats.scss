@@ -3,28 +3,37 @@
   margin: 4rem 0;
   padding: 1rem;
   
+  
   h2 {
     font-size: 2rem;
+    font-family: var(--fontTitle);
+    letter-spacing: 0.16rem;
     font-weight: bold;
     margin-bottom: 2rem;
     text-align: center;
-    color: #333;
+    color: var(--textPrimary);
   }
   
   h3 {
     font-size: 1.5rem;
     font-weight: bold;
     margin-bottom: 1rem;
-    color: #444;
+    color: var(--textPrimary);
     text-align: center;
   }
   
   .season-stats {
-    background-color: white;
+    background-color: var(--surfaceColor);
     border-radius: 0.5rem;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     padding: 1.5rem;
     margin-bottom: 2rem;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    
+    // Adjust shadow for dark theme
+    [data-theme="dark"] & {
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
     
     .stats-row {
       display: grid;
@@ -47,79 +56,29 @@
       padding: 1rem;
       text-align: center;
       border-radius: 0.25rem;
-      background-color: #f8f9fa;
+      background-color: var(--backgroundColor);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
       
       .stat-label {
+        font-family: var(--fontMono);
         font-size: 0.875rem;
-        color: #6c757d;
+        color: var(--textPrimary);
+        opacity: 0.9;
         margin-bottom: 0.5rem;
       }
       
       .stat-value {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #007bff;
-      }
-      
-      .stat-detail {
-        font-size: 0.75rem;
-        color: #6c757d;
-        margin-top: 0.25rem;
-        font-style: italic;
+            font-size: 2.5rem;
+            font-family: var(--fontTitle);
+            letter-spacing: 0.16rem;
+            font-weight: bold;
+            color: var(--primaryColor);
+            [data-theme="dark"] & {
+              color: var(--accentColor);
+        }
       }
     }
   }
   
-  .teams-comparison {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    
-    @media (min-width: 768px) {
-      flex-direction: row;
-      align-items: center;
-    }
-    
-    .team-column {
-      flex: 1;
-      background-color: white;
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      padding: 1.5rem;
-      
-      .team-stat {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #e9ecef;
-        
-        &:last-child {
-          border-bottom: none;
-        }
-        
-        .stat-label {
-          color: #6c757d;
-        }
-        
-        .stat-value {
-          font-weight: 600;
-          color: #333;
-        }
-      }
-    }
-    
-    .vs-divider {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      font-weight: bold;
-      color: #dc3545;
-      padding: 1rem;
-      
-      @media (max-width: 767px) {
-        transform: rotate(90deg);
-      }
-    }
-  }
+  
 }

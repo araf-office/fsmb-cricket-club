@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logo from '../../assets/logo.png'
+import { themeService, ThemeType } from '../../services/themeService'
+
 
 function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -9,6 +11,20 @@ function Header() {
   const [showTooltip, setShowTooltip] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+    // Add this state inside the Header component
+  const [currentTheme, setCurrentTheme] = useState<ThemeType>('light');
+
+  // Add this useEffect to initialize theme
+  useEffect(() => {
+    setCurrentTheme(themeService.getCurrentTheme());
+  }, []);
+
+  // Add this function
+  const handleThemeToggle = () => {
+    const newTheme = themeService.toggleTheme();
+    setCurrentTheme(newTheme);
+  };
   
   const isHomePage = location.pathname === '/';
   
@@ -105,17 +121,31 @@ function Header() {
         </nav>
 
         {/* Right: Live Now Button */}
-        <div className="live-now-container">
-          <a href="#" className="live-now" onClick={handleLiveClick}>
-            <span className="dot"></span>
-            <span>Live Now</span>
-          </a>
-          {showTooltip && (
-            <div className="coming-soon-tooltip">
-              Coming Soon!
-            </div>
-          )}
+        <div className="action-buttons">
+          <div className="live-now-container">
+            <a href="#" className="live-now" onClick={handleLiveClick}>
+              <span className="dot"></span>
+              <span>Live Now</span>
+            </a>
+            {showTooltip && (
+              <div className="coming-soon-tooltip">
+                Coming Soon!
+              </div>
+            )}
+          </div>
+          
+          {/* Theme Toggle Button */}
+          <button 
+            className="theme-toggle" 
+            onClick={handleThemeToggle}
+            aria-label={`Switch to ${currentTheme === 'light' ? 'dark' : 'light'} theme`}
+          >
+            <i className="material-icons">
+              {currentTheme === 'light' ? 'dark_mode' : 'light_mode'}
+            </i>
+          </button>
         </div>
+
       </div>
     </header>
   )

@@ -51,21 +51,26 @@
     max-width: 800px;
     
     h1 {
-      font-size: 3.5rem;
-      font-weight: bold;
+      font-family: var(--fontTitle);
+      font-size: 5rem;
+      font-Weight: var(--weightSemibold);
       margin-bottom: 1rem;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-      
+      color: var(--accentColorLight);
+      [data-theme="dark"] & {
+        color: var(--accentColor);
+      }
       @media (max-width: 768px) {
         font-size: 2.5rem;
       }
     }
     
     p {
+      font-family: var(--fontTitle);
       font-size: 1.5rem;
       margin-bottom: 2rem;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-      
+      color: rgb(228, 228, 228);
+    
       @media (max-width: 768px) {
         font-size: 1.25rem;
       }
@@ -73,6 +78,7 @@
     
     .button-group {
       display: flex;
+
       gap: 1rem;
       justify-content: center;
       

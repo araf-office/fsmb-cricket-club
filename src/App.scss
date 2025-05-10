@@ -8,8 +8,6 @@
 @use './styles/components/common/header';
 @use './styles/components/common/footer';
 @use './styles/components/home/hero-section';
-@use './styles/components/home/upcoming-matches';
-@use './styles/components/home/recent-results';
 @use './styles/components/home/team-stats';
 @use './styles/components/player/match-modal';
 
@@ -19,7 +17,7 @@
 @use './styles/pages/player-detail';
 @use './styles/pages/hall-of-fame';
 @use './styles/pages/leaderboard';
-
+@use './styles/components/common/fonts';
 
 .app {
   display: flex;
