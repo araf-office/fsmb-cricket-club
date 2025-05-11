@@ -188,14 +188,76 @@ function HallOfFame() {
           "Celebrating the extraordinary achievements and memorable moments"
         </p>
 
-        <div className="hall-of-fame-sections">
-          {categories.map((category, index) => {
+        {/* First Row: Batting and Bowling side by side */}
+        <div className="hall-of-fame-sections top-row">
+          {categories.slice(0, 2).map((category, index) => {
             const achievements = getCategoryData(index);
             
+            return (
+              <div key={index} className="category-section">
+                <div className="category-header">
+                  <i className="material-icons category-icon">{category.icon}</i>
+                  <h2 className="category-title">{category.title}</h2>
+                </div>
+                
+                <div className="table-wrapper">
+                  <table className="achievements-table">
+                    <thead>
+                      <tr>
+                        <th className="rank-column">#</th>
+                        <th className="criteria-column">Achievement</th>
+                        <th className="player-column">Player</th>
+                        <th className="score-column">Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {achievements.map((achievement, achievementIndex) => (
+                        <tr 
+                          key={achievementIndex}
+                          className={`achievement-row ${isShame(achievement.criteria) ? 'shame-row' : ''}`}
+                          onClick={() => handlePlayerClick(achievement.playerName)}
+                        >
+                          <td className="rank-cell">
+                            <div className={`rank-badge ${isShame(achievement.criteria) ? 'shame-badge' : ''}`}>
+                              {achievementIndex + 1}
+                            </div>
+                          </td>
+                          <td className="criteria-cell">
+                            {achievement.criteria}
+                          </td>
+                          <td className="player-cell">
+                            <div className="player-info">
+                              <div 
+                                className="player-image"
+                                style={{ backgroundImage: `url(${achievement.playerImage})` }}
+                              />
+                              <span className="player-name">{achievement.playerName}</span>
+                            </div>
+                          </td>
+                          <td className="score-cell">
+                            <span className={`score-value ${isShame(achievement.criteria) ? 'shame-score' : ''}`}>
+                              {formatScore(achievement.score)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Second Row: All-Round and Legendary Records side by side */}
+        <div className="hall-of-fame-sections bottom-row">
+          {categories.slice(2).map((category, index) => {
+            const achievements = getCategoryData(index + 2);
+            
             // Special handling for Legendary Records (index 3)
-            if (index === 3) {
+            if (index + 2 === 3) {
               return (
-                <div key={index} className="category-section">
+                <div key={index + 2} className="category-section">
                   <div className="category-header">
                     <i className="material-icons category-icon">{category.icon}</i>
                     <h2 className="category-title">{category.title}</h2>
@@ -231,9 +293,9 @@ function HallOfFame() {
               );
             }
             
-            // Regular rendering for other categories
+            // Regular rendering for All-Round Glory
             return (
-              <div key={index} className="category-section">
+              <div key={index + 2} className="category-section">
                 <div className="category-header">
                   <i className="material-icons category-icon">{category.icon}</i>
                   <h2 className="category-title">{category.title}</h2>

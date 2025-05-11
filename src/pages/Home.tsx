@@ -1,6 +1,7 @@
 // src/pages/Home.tsx
 import HeroSection from '../components/home/HeroSection';
 import TeamStats from '../components/home/TeamStats';
+import LastMatchCard from '../components/home/LastMatchCard';
 
 
 function Home() {
@@ -10,6 +11,8 @@ function Home() {
       <div className="container">
         <section className="section">
           <TeamStats />
+          <LastMatchCard />
+         
         </section>
       </div>
       

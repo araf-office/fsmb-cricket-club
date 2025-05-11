@@ -2,8 +2,8 @@
 .team-stats {
   margin: 4rem 0;
   padding: 1rem;
-  
-  
+
+
   h2 {
     font-size: 2rem;
     font-family: var(--fontTitle);
@@ -12,6 +12,9 @@
     margin-bottom: 2rem;
     text-align: center;
     color: var(--textPrimary);
+    [data-theme="dark"] & {
+      color: var(--accentColor);
+    }
   }
   
   h3 {

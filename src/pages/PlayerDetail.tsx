@@ -13,8 +13,7 @@ import { PlayerData } from '../types/playerTypes';
 import Preloader from '../components/common/PreLoader';
 import { AnimatePresence } from 'framer-motion';
 import { cacheService } from '../services/cacheService';
-import MatchModal from '../components/player/MatchModal';
-
+import MatchHistory from '../components/player/MatcHistory';
 
 const currentTheme = document.documentElement.getAttribute('data-theme');
 const isDarkTheme = currentTheme === 'dark';
@@ -346,27 +345,6 @@ function PlayerDetail() {
         color: '#96CEB4' 
       }
     ];
-  };
-
-  const renderMatchModals = () => {
-    if (!playerMatches || playerMatches.length === 0) {
-      return <div className="no-data">No match data available</div>;
-    }
-    
-    return (
-      <div className="matches-container">
-        {playerMatches.map((match, index) => (
-          <div key={index} className="match-item-wrapper">
-            <MatchModal 
-              match={match} 
-              index={index}
-              openModalIndex={openModalIndex}
-              setOpenModalIndex={setOpenModalIndex}
-            />
-          </div>
-        ))}
-      </div>
-    );
   };
   
   if (playersLoading || loading) {
@@ -772,7 +750,7 @@ function PlayerDetail() {
           </div>
         </section>
         
-        {/* Match History */}
+        {/* Match History - Now using the new MatchHistory component */}
         <section className="player-matches">
           <h2 className="section-title">Match History</h2>
           <div className="matches-header">
@@ -791,7 +769,11 @@ function PlayerDetail() {
               </div>
             </div>
           </div>
-          {renderMatchModals()}
+          <MatchHistory 
+            matches={playerMatches}
+            openModalIndex={openModalIndex}
+            setOpenModalIndex={setOpenModalIndex}
+          />
         </section>
       </div>
     </div>

@@ -41,53 +41,70 @@
   }
   
   .hall-of-fame-sections {
-    display: flex;
-    flex-direction: column;
+    display: grid;
     gap: 1.5rem;
+    margin-bottom: 2rem;
+    
+    // For big screens - side by side
+    @media (min-width: 992px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    // For smaller screens - stack vertically
+    @media (max-width: 991px) {
+      grid-template-columns: 1fr;
+    }
+    
+    // Add specific styling for the second row
+    &.bottom-row {
+      margin-top: 2rem;
+    }
   }
   
 
   .legendary-table {
-  thead th {
-    &.stat-column {
-      width: 70%;
-      text-align: left;
+    thead th {
+      &.stat-column {
+        width: 70%;
+        text-align: left;
+      }
+      
+      &.value-column {
+        width: 30%;
+        text-align: right;
+        padding-right: 1rem;
+      }
     }
     
-    &.value-column {
-      width: 7%;
+    .stat-row {
+      cursor: default; // No click navigation for stats
+      
+      &:hover {
+        transform: none; // No hover transform
+      }
+    }
+    
+    .stat-info {
+      .stat-name {
+        font-weight: 500;
+        color: var(--textPrimary);
+        font-size: 0.9rem;
+      }
+    }
+    
+    .stat-value {
+      font-family: var(--fontTitle);
       text-align: right;
-    }
-  }
-  
-  .stat-row {
-    cursor: default; // No click navigation for stats
-    
-    &:hover {
-      transform: none; // No hover transform
-    }
-  }
-  
-  .stat-info {
-    .stat-name {
+      font-size: 1.1rem;
       font-weight: 500;
-      color: var(--textPrimary);
-      font-size: 0.9rem;
+      color: var(--primaryColor);
+      padding-right: 1rem;
+      
+      [data-theme="dark"] & {
+        color: var(--accentColor);
+      }
     }
   }
-  
-  .stat-value {
-    font-family: var(--fontTitle);
-    text-align: right;
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: var(--primaryColor);
-    
-    [data-theme="dark"] & {
-      color: var(--accentColor);
-    }
-  }
-}
 
   .category-section {
     background: var(--surfaceColor);
@@ -134,7 +151,6 @@
     overflow-x: hidden;
     border-radius: 6px;
     border: 1px solid var(--borderColor);
-    
   }
   
   .achievements-table {
@@ -158,25 +174,24 @@
         color: var(--textPrimary);
         font-size: 0.85rem;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
         
         &.rank-column {
-          width: 8%; 
+          width: 10%; 
           text-align: center;
         }
         
         &.criteria-column {
-          width: 35%; 
+          width: 38%; 
         }
         
         &.player-column {
-           width: 35%;
+          width: 32%;
         }
         
         &.score-column {
-          width: 22%;
+          width: 20%;
           text-align: right;
+          padding-right: 1rem;
         }
       }
     }
@@ -221,7 +236,6 @@
       td {
         padding: 0.5rem 0.75rem;
         color: var(--textPrimary);
-        white-space: nowrap; 
         overflow: hidden;
         text-overflow: ellipsis;
         
@@ -231,16 +245,25 @@
         
         &.criteria-cell {
           font-size: 0.85rem;
+          white-space: normal;
+          word-wrap: break-word;
+        }
+        
+        &.player-cell {
+          white-space: nowrap;
         }
         
         &.score-cell {
           text-align: right;
+          white-space: nowrap;
+          padding-right: 1rem;
           
           .score-value {
             font-family: var(--fontTitle);
             font-size: 1rem;
             font-weight: 600;
             color: var(--primaryColor);
+            display: block;
             
             [data-theme="dark"] & {
               color: var(--accentColor);
@@ -303,18 +326,22 @@
   }
   
   .notes-section {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background: var(--surfaceColor);
-  border-radius: 12px;
-  border: 1px solid var(--borderColor);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--surfaceColor);
+    border-radius: 12px;
+    border: 1px solid var(--borderColor);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     
     .note-item {
-     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
       
       i {
         color: var(--primaryColor);
@@ -322,10 +349,6 @@
         
         [data-theme="dark"] & {
           color: var(--accentColor);
-        }
-        
-        &.material-icons:contains('warning') {
-          color: var(--danger-color);
         }
       }
       
@@ -338,6 +361,23 @@
     }
   }
   
+  // Add spacer between sections for better layout
+  .category-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    
+    .table-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      
+      .achievements-table {
+        flex: 1;
+      }
+    }
+  }
+  
   // Responsive design
   @media (max-width: 768px) {
     .achievements-table {
@@ -346,15 +386,30 @@
       thead th {
         padding: 0.5rem;
         font-size: 0.75rem;
+        
+        &.score-column {
+          padding-right: 0.5rem;
+        }
       }
       
       tbody td {
         padding: 0.4rem 0.3rem; 
         font-size: 0.75rem;
 
-        &.criteria-column {
-        white-space: normal; 
+        &.criteria-cell {
+          white-space: normal;
+          word-wrap: break-word;
         }
+        
+        &.score-cell {
+          padding-right: 0.5rem;
+        }
+      }
+    }
+    
+    .legendary-table {
+      .stat-value {
+        padding-right: 0.5rem;
       }
     }
     

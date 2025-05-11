@@ -20,6 +20,8 @@
 @use './styles/components/common/fonts';
 @use './styles/components/common/preloader';
 @use './styles/components/common/search-bar';
+@use './styles/components/player/match-history';
+@use './styles/components/home/last-match-card';
 
 .app {
   display: flex;
