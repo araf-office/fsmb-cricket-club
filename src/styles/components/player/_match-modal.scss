@@ -36,6 +36,13 @@
   align-items: center;
   background-color: var(--surfaceColor);
   transition: background-color 0.3s ease;
+  gap: 0.5rem;
+  
+  @media (max-width: 576px) {
+    padding: 0.75rem;
+    padding-right: 3rem; // Add extra padding for the arrow
+    flex-wrap: wrap;
+  }
   
   &:hover {
     background-color: var(--mutedColor);
@@ -46,6 +53,14 @@
   display: flex;
   gap: 0.75rem;
   align-items: center;
+
+    flex-shrink: 0; // Prevent shrinking
+  min-width: 0; // Allow content to shrink
+   @media (max-width: 576px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
 }
 
 .match-number {
@@ -57,11 +72,21 @@
     color: var(--accentColor);
   }
   font-size: 1rem;
+  white-space: nowrap;
+
+   @media (max-width: 576px) {
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+  }
 }
 
 .match-date {
   color: var(--textSecondary);
   font-size: 0.875rem;
+  white-space: nowrap;
+   @media (max-width: 576px) {
+    font-size: 0.8rem;
+  }
 }
 
 .match-stats {
@@ -69,13 +94,33 @@
   gap: 1rem;
   flex-wrap: nowrap;
   align-items: center;
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+
+  @media (max-width: 576px) {
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: flex-start; // Changed from space-between
+    margin-top: 0.5rem;
+    padding-right: 2rem; // Add padding to prevent overlap with arrow
+  }
 }
 
 .match-runs, .match-wickets {
   font-weight: 400;
   color: var(--textSecondary);
+  white-space: nowrap; // Add this to prevent text wrapping
   
-  // Highlight good performances
+  @media (max-width: 576px) {
+    font-size: 0.85rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+  }
+  
+  // Remove the complex mobile styling for match-runs
   &.high-score {
     color: $success-color;
     font-weight: bold;
@@ -86,6 +131,39 @@
     font-weight: bold;
   }
 }
+
+.arrow-icon {
+  margin-left: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--textSecondary);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+  
+  @media (max-width: 576px) {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 0; // Remove margin on mobile
+  }
+  
+  i {
+    font-size: 20px;
+    @media (max-width: 576px) {
+      font-size: 18px;
+    }
+  }
+  
+  .expanded & {
+    transform: rotate(180deg);
+    @media (max-width: 576px) {
+      transform: translateY(-50%) rotate(180deg);
+    }
+  }
+}
+
 
 .match-mom {
   background: linear-gradient(45deg, #FFD700, #FFB800);
@@ -99,10 +177,17 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
+  @media (max-width: 576px) {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.7rem;
+  }
   
   i {
     font-size: 1rem;
     color: inherit;
+     @media (max-width: 576px) {
+      font-size: 0.9rem;
+    }
   }
 }
 
@@ -113,13 +198,25 @@
   justify-content: center;
   color: var(--textSecondary);
   transition: transform 0.3s ease;
+    @media (max-width: 576px) {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
   
   i {
     font-size: 20px;
+     @media (max-width: 576px) {
+      font-size: 18px;
+    }
   }
   
   .expanded & {
     transform: rotate(180deg);
+    @media (max-width: 576px) {
+      transform: translateY(-50%) rotate(180deg);
+    }
   }
 }
 

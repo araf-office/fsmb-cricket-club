@@ -6,18 +6,21 @@ interface GoToTopProps {
 }
 
 function GoToTop({ scrollThreshold = 300 }: GoToTopProps) {
-  const [scrollY, setScrollY] = useState(0);
+  const setScrollY = useState(0)[1];
+  const [isVisible, setIsVisible] = useState(false);
   
   useEffect(() => {
     const handleScroll = () => {
       setScrollY(window.scrollY);
+      setIsVisible(window.scrollY > scrollThreshold);
     };
     
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scrollThreshold]);
   
   const scrollToTop = () => {
     window.scrollTo({
@@ -26,8 +29,7 @@ function GoToTop({ scrollThreshold = 300 }: GoToTopProps) {
     });
   };
   
-  // Only render the button if scrolled beyond threshold
-  if (scrollY <= scrollThreshold) {
+  if (!isVisible) {
     return null;
   }
   
@@ -48,18 +50,31 @@ function GoToTop({ scrollThreshold = 300 }: GoToTopProps) {
         alignItems: 'center',
         justifyContent: 'center',
         cursor: 'pointer',
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
         zIndex: 100,
-        transition: 'transform 0.2s ease-in-out'
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        opacity: isVisible ? '1' : '0',
+        transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(50px) scale(0.5)'
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-5px)';
+        e.currentTarget.style.transform = 'translateY(-5px) scale(1.1)';
+        e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.3)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.transform = 'translateY(0) scale(1)';
+        e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
       }}
     >
-      <i className="material-icons">arrow_upward</i>
+      <i 
+        className="material-icons" 
+        style={{
+          fontSize: '28px',
+          fontWeight: 'bold',
+          transition: 'transform 0.3s ease'
+        }}
+      >
+        keyboard_arrow_up
+      </i>
     </div>
   );
 }

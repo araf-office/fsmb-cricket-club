@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logo from '../../assets/logo.png'
 import { themeService, ThemeType } from '../../services/themeService'
-import SearchBar from './SearchBar';
-import { usePlayerData } from '../../hooks/usePlayerData';
+import SearchBar from './SearchBar'
+import { usePlayerData } from '../../hooks/usePlayerData'
+import { getPlayerImage } from '../../utils/imageUtils'
 
 function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -12,22 +13,48 @@ function Header() {
   const [showTooltip, setShowTooltip] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-
+  
   const { players } = usePlayerData();
-  const searchableData = players.map(player => ({
-    name: player.name,
-    role: player.role,
-    rank: player.rank,
-    imageUrl: player.imageUrl
-  }));
+  interface PlayerWithImage {
+    name: string;
+    role: string;
+    rank: number;
+    imageUrl: string;
+  }
 
-    // Add this state inside the Header component
+  const [playersWithImages, setPlayersWithImages] = useState<PlayerWithImage[]>([]);
+
+  // Add this state inside the Header component
   const [currentTheme, setCurrentTheme] = useState<ThemeType>('light');
 
   // Add this useEffect to initialize theme
   useEffect(() => {
     setCurrentTheme(themeService.getCurrentTheme());
   }, []);
+
+  // Load player images
+  useEffect(() => {
+    const loadImages = async () => {
+      if (players.length > 0) {
+        const updatedPlayers = await Promise.all(
+          players.map(async (player) => {
+            const imageUrl = await getPlayerImage({ 
+              name: player.name, 
+              playerNameForImage: player.playerNameForImage 
+            });
+            return { 
+              name: player.name,
+              role: player.role,
+              rank: player.rank,
+              imageUrl
+            };
+          })
+        );
+        setPlayersWithImages(updatedPlayers);
+      }
+    };
+    loadImages();
+  }, [players]);
 
   // Add this function
   const handleThemeToggle = () => {
@@ -129,19 +156,10 @@ function Header() {
           </ul>
         </nav>
 
-        {/* Right: Live Now Button */}
+        {/* Right: Action Buttons */}
         <div className="action-buttons">
-          <div className="live-now-container">
-            <a href="#" className="live-now" onClick={handleLiveClick}>
-              <span className="dot"></span>
-              <span>Live Now</span>
-            </a>
-            {showTooltip && (
-              <div className="coming-soon-tooltip">
-                Coming Soon!
-              </div>
-            )}
-          </div>
+          {/* Search */}
+          <SearchBar players={playersWithImages} />
           
           {/* Theme Toggle Button */}
           <button 
@@ -153,9 +171,18 @@ function Header() {
               {currentTheme === 'light' ? 'dark_mode' : 'light_mode'}
             </i>
           </button>
-
-          <div className="desktop-search">
-            <SearchBar players={searchableData} />
+          
+          {/* Live Now Button */}
+          <div className="live-now-container">
+            <a href="#" className="live-now" onClick={handleLiveClick}>
+              <span className="dot"></span>
+              <span>Live Now</span>
+            </a>
+            {showTooltip && (
+              <div className="coming-soon-tooltip">
+                Coming Soon!
+              </div>
+            )}
           </div>
         </div>
 

@@ -139,11 +139,15 @@
       }
       
       .player-rank {
+        font-family: var(--fontTitle);
+        color: var(--primaryColor);
+        [data-theme="dark"] & {
+          color: var(--accentColor);
+        }
         position: absolute;
         bottom: -10px;
         right: 10px;
-        background: var(--primaryColor);
-        color: $white;
+        background: var(--backgroundColor);
         padding: 0.5rem 1rem;
         border-radius: 2rem;
         font-weight: bold;

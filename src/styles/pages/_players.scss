@@ -56,62 +56,93 @@
     }
   }
   
-  .player-image-container {
-    position: relative;
-    margin-bottom: 1.5rem;
-    border-radius: 50%; // Ensure container is round
-    overflow: hidden; // This will ensure the hover effect stays within the circle
-    
-    &::after {
-      font-family: var(--fontMono);
-      content: 'View Profile';
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: var(--overlayColor);
-      color: $white;
-      font-weight: bold;
-      border-radius: 50%; // Keep the overlay round
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
+.player-image-container {
+  position: relative;
+  margin-bottom: 1.5rem;
+  border-radius: 50%;
+  overflow: visible; // Changed from hidden to visible
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 1.5rem;
+  
+  @media (max-width: 768px) {
+    width: 180px;
+    height: 180px;
   }
   
-  .player-image {
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    background-size: cover;
-    background-position: center;
-    margin: 0 auto;
-    
-    box-shadow:rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;;
-   
+  @media (max-width: 576px) {
+    width: 160px;
+    height: 160px;
   }
   
-  .player-rank-badge {
-    font-family: var(--fontTitle);
+  // Apply overflow hidden only to the after element
+  &::after {
+    font-family: var(--fontMono);
+    content: 'View Profile';
     position: absolute;
-    bottom: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--primaryColor);
-    [data-theme="dark"] & {
-      background-color: var(--accentColor);
-    }
-    color: whitesmoke;
-    font-size: 0.675rem;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--overlayColor);
+    color: $white;
     font-weight: bold;
-    padding: 0.45rem 1rem;
-    border-radius: 1rem;
-    text-transform: uppercase;
-    z-index: 2; // Ensure it's above the hover overlay
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    letter-spacing: 1px;
-    
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    overflow: hidden; // Hide overflow here instead
   }
+}
+
+
+  
+.player-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+  overflow: hidden; // Clip the image to the circle
+}
+  
+ .player-rank-badge {
+  font-family: var(--fontTitle);
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--primaryColor);
+  [data-theme="dark"] & {
+    background-color: var(--accentColor);
+  }
+  color: whitesmoke;
+  font-size: 0.675rem;
+  font-weight: bold;
+  padding: 0.45rem 1rem; // Increased horizontal padding
+  border-radius: 1rem;
+  text-transform: uppercase;
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  letter-spacing: 1px;
+  white-space: nowrap; // Prevent text wrapping
+  min-width: 80px; // Set minimum width to accommodate double digits
+  text-align: center;
+  
+  // Responsive adjustments
+  @media (max-width: 768px) {
+    font-size: 0.625rem;
+    padding: 0.4rem 0.9rem;
+    min-width: 75px;
+  }
+  
+  @media (max-width: 576px) {
+    font-size: 0.6rem;
+    padding: 0.35rem 0.8rem;
+    min-width: 70px;
+  }
+}
+
 
 
   

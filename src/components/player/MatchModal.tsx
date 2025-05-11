@@ -58,10 +58,12 @@ const MatchModal: React.FC<MatchModalProps> = ({
           <span className={`match-wickets ${isGoodBowling ? 'good-bowling' : ''}`}>
             Wickets - {match['Wickets Taken'] || 0}
           </span>
-          {isManOfTheMatch && <span className="match-mom">
-                              <i className="material-icons">star</i>
-                              MoM
-                            </span>}
+          {isManOfTheMatch && (
+            <span className="match-mom">
+              <i className="material-icons">star</i>
+              MoM
+            </span>
+          )}
         </div>
         <div className="arrow-icon">
           <i className="material-icons">
