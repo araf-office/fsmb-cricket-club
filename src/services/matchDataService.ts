@@ -40,55 +40,81 @@ const columnToIndex = (column: string): number => {
   return index - 1;
 };
 
-// Parse match data from API response
+
+
 const parseMatchData = (matchData: unknown[][]): LastMatchInfo | null => {
   console.log('Parsing match data:', matchData);
+  console.log('Total rows:', matchData.length);
   
-  // Skip header row
-  const dataRows = matchData.slice(1);
+  // Check if first row looks like a header
+  const firstRow = matchData[0];
+  let dataRows: unknown[][];
+  
+  // Check if the first row is a header by looking at the data types
+  // If the first row has dates/numbers in expected positions, it's data, not a header
+  if (firstRow && typeof firstRow[0] === 'string' && firstRow[0].includes('T')) {
+    // First row looks like data (has a date), don't skip it
+    console.log('First row appears to be data, not skipping');
+    dataRows = matchData;
+  } else {
+    // First row is likely a header, skip it
+    console.log('First row appears to be header, skipping');
+    dataRows = matchData.slice(1);
+  }
+  
+  console.log('Data rows to process:', dataRows.length);
   
   if (dataRows.length === 0) {
     console.error('No data rows found');
     return null;
   }
   
-  // Based on your description, we know the exact columns:
-  // A = Date, B = Player Name, U = Man of the Match (Yes/No), V = Team Name, W = Result, Y = Score
+  // Column indices
   const dateIndex = columnToIndex('A');    // 0
   const playerIndex = columnToIndex('B');  // 1
-  const momIndex = columnToIndex('U');    // 20 - Man of the Match column (Yes/No)
+  const momIndex = columnToIndex('U');    // 20
   const teamIndex = columnToIndex('V');    // 21
   const resultIndex = columnToIndex('W');  // 22
   const scoreIndex = columnToIndex('Y');   // 24
   
-  console.log('Column indices:', { dateIndex, playerIndex, momIndex, teamIndex, resultIndex, scoreIndex });
-  
-  // Extract data
-  const firstRow = dataRows[0] as (string | number | unknown)[];
-  const date = firstRow && firstRow[dateIndex] ? String(firstRow[dateIndex]) : 'Unknown Date';
+  // Extract date from first data row
+  const firstDataRow = dataRows[0] as (string | number | unknown)[];
+  const date = firstDataRow && firstDataRow[dateIndex] ? String(firstDataRow[dateIndex]) : 'Unknown Date';
   const teams: TeamResult[] = [];
   const players: PlayerTeamInfo[] = [];
   const playerMap = new Map<string, { teams: Set<string>; isManOfMatch: boolean }>();
   
-  console.log('First row data:', firstRow);
+  console.log('First data row:', firstDataRow);
   console.log('Extracted date:', date);
   
   // Process each row
   dataRows.forEach((row: unknown[], index: number) => {
     const rowData = row as (string | number | unknown)[];
-    const teamName = rowData[teamIndex] ? String(rowData[teamIndex]) : '';
-    const playerName = rowData[playerIndex] ? String(rowData[playerIndex]) : '';
-    const result = rowData[resultIndex] ? String(rowData[resultIndex]) : '';
-    const score = rowData[scoreIndex] ? String(rowData[scoreIndex]) : '';
-    const momValue = rowData[momIndex] ? String(rowData[momIndex]).toLowerCase() : '';
+    const teamName = rowData[teamIndex] ? String(rowData[teamIndex]).trim() : '';
+    const playerName = rowData[playerIndex] ? String(rowData[playerIndex]).trim() : '';
+    const result = rowData[resultIndex] ? String(rowData[resultIndex]).trim() : '';
+    const score = rowData[scoreIndex] ? String(rowData[scoreIndex]).trim() : '';
+    const momValue = rowData[momIndex] ? String(rowData[momIndex]).toLowerCase().trim() : '';
     
+    // Log first few rows for debugging
     if (index < 5) {
-      console.log(`Row ${index}:`, { teamName, playerName, result, score, momValue });
+      console.log(`Row ${index}:`, { 
+        teamName, 
+        playerName, 
+        result, 
+        score, 
+        momValue 
+      });
     }
     
-    // Skip if team is "Both Teams"
+    // Skip if player name is empty
+    if (!playerName) {
+      console.log(`Skipping row ${index} - empty player name`);
+      return;
+    }
+    
+    // Process teams
     if (teamName && teamName !== 'Both Teams') {
-      // Check if we already have this team
       const existingTeam = teams.find(t => t.teamName === teamName);
       
       if (!existingTeam) {
@@ -97,34 +123,35 @@ const parseMatchData = (matchData: unknown[][]): LastMatchInfo | null => {
           result: result.toLowerCase() === 'won' ? 'Won' : 'Lost',
           score
         });
+        console.log(`Added team: ${teamName}`);
       }
     }
     
     // Track players and their teams
-    if (playerName && teamName) {
-      if (!playerMap.has(playerName)) {
-        playerMap.set(playerName, {
-          teams: new Set(),
-          isManOfMatch: false
-        });
-      }
-      
-      const playerData = playerMap.get(playerName)!;
-      
-      // Check if this player is Man of the Match
-      // Column U has 'Yes' or 'No'
-      if (momValue === 'yes' || momValue === 'y') {
-        playerData.isManOfMatch = true;
-      }
-      
-      if (teamName === 'Both Teams') {
-        // If player played for both teams, add to both teams
-        teams.forEach(team => {
-          playerData.teams.add(team.teamName);
-        });
-      } else if (teamName !== 'Both Teams') {
-        playerData.teams.add(teamName);
-      }
+    if (!playerMap.has(playerName)) {
+      playerMap.set(playerName, {
+        teams: new Set(),
+        isManOfMatch: false
+      });
+      console.log(`Added player: ${playerName}`);
+    }
+    
+    const playerData = playerMap.get(playerName)!;
+    
+    // Check if this player is Man of the Match
+    if (momValue === 'yes' || momValue === 'y' || momValue === '1') {
+      playerData.isManOfMatch = true;
+      console.log(`${playerName} is Man of the Match`);
+    }
+    
+    // Assign player to team
+    if (teamName === 'Both Teams') {
+      teams.forEach(team => {
+        playerData.teams.add(team.teamName);
+      });
+    } else if (teamName) {
+      playerData.teams.add(teamName);
+      console.log(`Added ${playerName} to team ${teamName}`);
     }
   });
   
@@ -143,11 +170,17 @@ const parseMatchData = (matchData: unknown[][]): LastMatchInfo | null => {
     players
   };
   
-  console.log('Parsed match data result:', result);
+  console.log('=== FINAL PARSED DATA ===');
+  console.log('Teams:', teams);
+  console.log('All player names:', players.map(p => p.playerName));
+  console.log('Players with teams:', players.map(p => ({
+    name: p.playerName,
+    teams: p.teams,
+    mom: p.isManOfMatch
+  })));
   
   return result;
 };
-
 export const fetchLastMatchData = async (forceRefresh = false): Promise<LastMatchInfo | null> => {
   try {
     // First check if we have cached data
@@ -167,7 +200,8 @@ export const fetchLastMatchData = async (forceRefresh = false): Promise<LastMatc
     
     console.log('Fetching fresh match data from API...');
     
-    // If no cache or forced refresh, fetch from API
+    console.log('Fetching fresh match data from API...');
+    
     const API_URL = 'https://script.google.com/macros/s/AKfycbwf0cA_04JPA151jIwSffoiTJZqox18ybxD2bsKcPja84Mi8d_8HJEbmSRnCh0b5nl8/exec';
     const response = await axios.get<MatchDataResponse>(`${API_URL}?type=all`);
     
@@ -175,16 +209,35 @@ export const fetchLastMatchData = async (forceRefresh = false): Promise<LastMatc
     
     if (!response.data || !response.data['Match Data']) {
       console.error('No match data found in API response');
-      // Try to use cached data as fallback
-      const cachedData = localStorage.getItem(CACHE_KEY);
-      if (cachedData) {
-        console.log('Using cached data as fallback');
-        return JSON.parse(cachedData) as LastMatchInfo;
-      }
       return null;
     }
     
     const matchData = response.data['Match Data'];
+    
+    // Add detailed logging to check for Imam
+    console.log('=== RAW MATCH DATA FROM API ===');
+    console.log('Total rows in Match Data:', matchData.length);
+    
+    // Check if any row has "Imam" as player name
+    let imamFound = false;
+    matchData.forEach((row, index) => {
+      const playerName = row[1]; // Column B is index 1
+      if (playerName === 'Imam') {
+        console.log(`FOUND IMAM at row ${index}:`, row);
+        imamFound = true;
+      }
+    });
+    
+    if (!imamFound) {
+      console.log('IMAM NOT FOUND in raw data from API');
+      console.log('First 5 rows of raw data:');
+      matchData.slice(0, 5).forEach((row, index) => {
+        console.log(`Row ${index}:`, row);
+      });
+    }
+    
+    
+   
     const parsedData = parseMatchData(matchData);
     
     if (parsedData) {

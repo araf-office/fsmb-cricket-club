@@ -62,11 +62,18 @@ function LastMatchCard() {
     const loserPlayersList = playersWithImgs.filter(player => 
       player.teams.includes(loser.teamName)
     );
-    
+        console.log('=== LAST MATCH CARD DEBUG ===');
+        console.log('Winner team:', winner);
+        console.log('Loser team:', loser);
+        console.log('All players:', matchData.players);
+        console.log('Winner players:', winnerPlayersList);
+        console.log('Loser players:', loserPlayersList);
     return {
       winnerPlayers: winnerPlayersList,
       loserPlayers: loserPlayersList
     };
+
+
   }, [matchData, playerImages]);
   
   // Load match data
