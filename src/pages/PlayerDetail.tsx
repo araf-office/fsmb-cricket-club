@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/PlayerDetail.tsx
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
@@ -14,6 +14,10 @@ import Preloader from '../components/common/PreLoader';
 import { cacheService } from '../services/cacheService';
 import MatchModal from '../components/player/MatchModal';
 
+
+const currentTheme = document.documentElement.getAttribute('data-theme');
+const isDarkTheme = currentTheme === 'dark';
+
 // Define type for match data
 interface MatchData {
   Date?: string;
@@ -26,7 +30,8 @@ interface MatchData {
   'Balls Bowled'?: number | string;
   'Wickets Taken'?: number | string;
   'Dots Taken'?: number | string;
-  'Twos Takes'?: number | string;
+  'Singles Taken'?: number | string;
+  'Twos Taken'?: number | string;
   'Fours Taken'?: number | string;
   'Penalty'?: number | string;
   'Dots Given'?: number | string;
@@ -68,18 +73,27 @@ const THRESHOLDS: {
   overall: ThresholdCategory;
 } = {
   batting: {
-    average: { good: 30, bad: 15 },
+    average: { good: 40, bad: 15 },
     strikeRate: { good: 120, bad: 80 },
+    thirties: { good: 3, bad: 0 },
     fifties: { good: 1, bad: 0 },
-    ducks: { good: 1, bad: 3 },
-    boundaryPercentage: { good: 15, bad: 5 }
+    seventies: { good: 1, bad: 0 },
+    ducks: { good: 0, bad: 1 },
+    goldenDucks: { good: 0, bad: 1 },
+    penalty: { good: 0, bad: 1 },
+    boundaryPercentage: { good: 40, bad: 5 },
+    dotsTaken: { good: 10, bad: 20 },
   },
   bowling: {
     average: { good: 25, bad: 40 },
     economy: { good: 6, bad: 8 },
     strikeRate: { good: 20, bad: 35 },
     threeWickets: { good: 1, bad: 0 },
-    maidens: { good: 3, bad: 0 }
+    fiveWickets: { good: 1, bad: 0 },
+    hattricks: { good: 1, bad: 0 },
+    maidens: { good: 1, bad: 0 },
+    extras: { good: 5, bad: 15 },
+    dotsGiven: { good: 20, bad: 0 },
   },
   overall: {
     winPercentage: { good: 50, bad: 30 },
@@ -89,7 +103,6 @@ const THRESHOLDS: {
 
 function PlayerDetail() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { players, loading: playersLoading, error: playersError } = usePlayerData();
   const [player, setPlayer] = useState<PlayerData | null>(null);
   const [playerMatches, setPlayerMatches] = useState<MatchData[]>([]);
@@ -214,20 +227,16 @@ function PlayerDetail() {
     }
   };
   
-  // Go back handler
-  const handleGoBack = () => {
-    navigate(-1);
-  };
-  
   // Custom tooltip for charts
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="custom-tooltip">
-          <p className="label">{`${label}`}</p>
+          <p className="label">{label || payload[0].name}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }}>
-              {`${entry.name}: ${entry.value}`}
+              {entry.name}: {entry.value}%
+              {entry.payload.actualValue && ` (${entry.payload.actualValue})`}
             </p>
           ))}
         </div>
@@ -241,9 +250,15 @@ function PlayerDetail() {
     const threshold = THRESHOLDS[category][metric];
     if (!threshold) return 'normal';
     
-    // For stats where lower is better (ducks, economy, bowling average)
-    const lowerIsBetter = ['ducks', 'economy', 'average'].includes(metric) && category === 'bowling';
-    
+    // For stats where lower is better
+    const lowerIsBetter = ['ducks', 'goldenDucks', 'penalty', 'extras', 'dotsTaken'].includes(metric) && category === 'batting' ||
+                          ['economy', 'average', 'extras', 'dotsGiven'].includes(metric) && category === 'bowling';
+     if (metric === 'penalty') {
+    const absValue = Math.abs(value);
+    if (absValue <= threshold.good) return 'good';
+    if (absValue >= threshold.bad) return 'bad';
+    return 'normal';
+  }
     if (lowerIsBetter) {
       if (value <= threshold.good) return 'good';
       if (value >= threshold.bad) return 'bad';
@@ -253,6 +268,15 @@ function PlayerDetail() {
     }
     
     return 'normal';
+  };
+
+  // Calculate penalty from match data
+  const calculateTotalPenalty = () => {
+    if (!playerMatches || playerMatches.length === 0) return 0;
+    
+    return playerMatches.reduce((total, match) => {
+      return total + Number(match['Penalty'] || 0);
+    }, 0);
   };
 
   // Prepare data for radar chart
@@ -293,11 +317,33 @@ function PlayerDetail() {
     if (!player) return [];
     
     const total = player.dotsTaken + player.singlesTaken + player.twosTaken + player.foursTaken;
+    if (total === 0) return []; // Avoid division by zero
+    
     return [
-      { name: 'Dots', value: (player.dotsTaken / total) * 100, color: '#FF6B6B' },
-      { name: 'Singles', value: (player.singlesTaken / total) * 100, color: '#4ECDC4' },
-      { name: 'Twos', value: (player.twosTaken / total) * 100, color: '#45B7D1' },
-      { name: 'Fours', value: (player.foursTaken / total) * 100, color: '#96CEB4' }
+      { 
+        name: 'Dots', 
+        value: Math.round((player.dotsTaken / total) * 100),
+        actualValue: player.dotsTaken,
+        color: '#FF6B6B' 
+      },
+      { 
+        name: 'Singles', 
+        value: Math.round((player.singlesTaken / total) * 100),
+        actualValue: player.singlesTaken,
+        color: '#4ECDC4' 
+      },
+      { 
+        name: 'Twos', 
+        value: Math.round((player.twosTaken / total) * 100),
+        actualValue: player.twosTaken,
+        color: '#45B7D1' 
+      },
+      { 
+        name: 'Fours', 
+        value: Math.round((player.foursTaken / total) * 100),
+        actualValue: player.foursTaken,
+        color: '#96CEB4' 
+      }
     ];
   };
 
@@ -359,13 +405,6 @@ function PlayerDetail() {
   return (
     <div className="player-detail-page">
       <div className="container">
-        <div className="back-button-container">
-          <button className="btn btn-sm btn-secondary back-button" onClick={handleGoBack}>
-            <i className="material-icons">arrow_back</i>
-            <span>Back to Players</span>
-          </button>
-        </div>
-        
         {/* Hero Section */}
         <section className="player-hero">
           <div className="hero-background">
@@ -409,16 +448,20 @@ function PlayerDetail() {
               <ResponsiveContainer width="100%" height={300}>
                 <RadarChart data={radarData}>
                   <PolarGrid strokeDasharray="3 3" />
-                  <PolarAngleAxis dataKey="stat" />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                  <PolarAngleAxis dataKey="stat" tick={{ fontFamily: 'var(--fontMono)', fontSize: '0.875rem' }} />
+                   <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontFamily: 'var(--fontMono)', fontSize: '0.875rem' }}/>
                   <Radar
                     name={player.name}
                     dataKey="value"
-                    stroke="var(--primaryColor)"
-                    fill="var(--primaryColor)"
+                    stroke={isDarkTheme ? 'var(--accentColor)' : 'var(--primaryColor)'}
+                    fill={isDarkTheme ? 'var(--accentColor)' : 'var(--primaryColor)'}
                     fillOpacity={0.6}
                   />
-                  <Tooltip content={CustomTooltip} />
+                  <Tooltip content={CustomTooltip}  contentStyle={{
+                        fontFamily: 'var(--fontMono)',
+                        backgroundColor: 'var(--surfaceColor)',
+                        border: '1px solid var(--borderColor)'
+                      }} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
@@ -434,12 +477,17 @@ function PlayerDetail() {
                     cy="50%"
                     outerRadius={80}
                     label={({name, value}) => `${name} ${value.toFixed(1)}%`}
-                  >
+                    labelLine={false}
+                    >
                     {shotDistribution.map((entry, index) => (
                       <Cell key={index} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip content={CustomTooltip} />
+                  <Tooltip content={CustomTooltip}  contentStyle={{
+                            fontFamily: 'var(--fontMono)',
+                            backgroundColor: 'var(--surfaceColor)',
+                            border: '1px solid var(--borderColor)'
+                          }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -473,6 +521,23 @@ function PlayerDetail() {
             {selectedTab === 'batting' && (
               <div className="stats-content batting-stats">
                 <div className="stats-grid">
+                  {/* Row 1: Basic Stats */}
+                  <div className="stat-card">
+                    <div className="stat-value">{player.matches}</div>
+                    <div className="stat-label">Matches</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.innings}</div>
+                    <div className="stat-label">Innings</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.runsScored}</div>
+                    <div className="stat-label">Runs</div>
+                  </div>
+                  <div className="stat-card highest-score-card">
+                    <div className="stat-value">{player.highestScore}</div>
+                    <div className="stat-label">Highest Score</div>
+                  </div>
                   <div className={`stat-card ${getStatQuality(player.battingAverage, 'batting', 'average')}`}>
                     <div className="stat-value">{player.battingAverage.toFixed(2)}</div>
                     <div className="stat-label">Average</div>
@@ -481,21 +546,55 @@ function PlayerDetail() {
                     <div className="stat-value">{player.strikeRate.toFixed(2)}</div>
                     <div className="stat-label">Strike Rate</div>
                   </div>
-                  <div className="stat-card">
-                    <div className="stat-value">{player.runsScored}</div>
-                    <div className="stat-label">Total Runs</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-value">{player.highestScore}</div>
-                    <div className="stat-label">Highest Score</div>
+                  
+                  {/* Row 2: Milestones */}
+                  <div className={`stat-card ${getStatQuality(player.thirties, 'batting', 'thirties')}`}>
+                    <div className="stat-value">{player.thirties}</div>
+                    <div className="stat-label">30s</div>
                   </div>
                   <div className={`stat-card ${getStatQuality(player.fifties, 'batting', 'fifties')}`}>
                     <div className="stat-value">{player.fifties}</div>
-                    <div className="stat-label">Fifties</div>
+                    <div className="stat-label">50s</div>
+                  </div>
+                  <div className={`stat-card ${getStatQuality(player.seventies, 'batting', 'seventies')}`}>
+                    <div className="stat-value">{player.seventies}</div>
+                    <div className="stat-label">70s</div>
+                  </div>
+                  <div className={`stat-card ${getStatQuality(player.boundaryPercentage, 'batting', 'boundaryPercentage')}`}>
+                    <div className="stat-value">{player.boundaryPercentage.toFixed(1)}%</div>
+                    <div className="stat-label">Boundary %</div>
+                  </div>
+                  
+                  {/* Row 3: Shot Distribution */}
+                  <div className={`stat-card ${getStatQuality(player.dotsTaken, 'batting', 'dotsTaken')}`}>
+                    <div className="stat-value">{player.dotsTaken}</div>
+                    <div className="stat-label">Dots</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.singlesTaken}</div>
+                    <div className="stat-label">Singles</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.twosTaken}</div>
+                    <div className="stat-label">Twos</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.foursTaken}</div>
+                    <div className="stat-label">Fours</div>
+                  </div>
+                  
+                  {/* Row 4: Negatives */}
+                  <div className={`stat-card ${getStatQuality(calculateTotalPenalty(), 'batting', 'penalty')}`}>
+                    <div className="stat-value">{calculateTotalPenalty()}</div>
+                    <div className="stat-label">Penalty</div>
                   </div>
                   <div className={`stat-card ${getStatQuality(player.ducks, 'batting', 'ducks')}`}>
                     <div className="stat-value">{player.ducks}</div>
                     <div className="stat-label">Ducks</div>
+                  </div>
+                  <div className={`stat-card ${getStatQuality(player.goldenDucks, 'batting', 'goldenDucks')}`}>
+                    <div className="stat-value">{player.goldenDucks}</div>
+                    <div className="stat-label">Golden Ducks</div>
                   </div>
                 </div>
 
@@ -511,8 +610,8 @@ function PlayerDetail() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="match" angle={-45} textAnchor="end" height={60} />
-                      <YAxis />
+                      <XAxis dataKey="match" angle={-45} textAnchor="end" height={60} tick={{ fontFamily: 'var(--fontMono)', fontSize: '0.875rem' }}  />
+                      <YAxis  tick={{ fontFamily: 'var(--fontMono)', fontSize: '0.875rem' }}/>
                       <Tooltip content={CustomTooltip} />
                       <Area 
                         type="monotone" 
@@ -530,6 +629,11 @@ function PlayerDetail() {
             {selectedTab === 'bowling' && (
               <div className="stats-content bowling-stats">
                 <div className="stats-grid">
+                  {/* Row 1: Basic Bowling Stats */}
+                  <div className="stat-card">
+                    <div className="stat-value">{player.wicketsTaken}</div>
+                    <div className="stat-label">Total Wickets</div>
+                  </div>
                   <div className={`stat-card ${getStatQuality(player.bowlingAverage, 'bowling', 'average')}`}>
                     <div className="stat-value">{player.bowlingAverage > 0 ? player.bowlingAverage.toFixed(2) : 'N/A'}</div>
                     <div className="stat-label">Average</div>
@@ -538,21 +642,59 @@ function PlayerDetail() {
                     <div className="stat-value">{player.economy.toFixed(2)}</div>
                     <div className="stat-label">Economy</div>
                   </div>
-                  <div className="stat-card">
-                    <div className="stat-value">{player.wicketsTaken}</div>
-                    <div className="stat-label">Total Wickets</div>
+                  <div className={`stat-card ${getStatQuality(player.bowlingStrikeRate, 'bowling', 'strikeRate')}`}>
+                    <div className="stat-value">{player.bowlingStrikeRate.toFixed(2)}</div>
+                    <div className="stat-label">Strike Rate</div>
                   </div>
-                  <div className="stat-card">
+                  <div className="stat-card best-bowling-card">
                     <div className="stat-value">{player.bestBowling || 'N/A'}</div>
                     <div className="stat-label">Best Bowling</div>
                   </div>
+                  
+                  {/* Row 2: Additional Stats */}
+                  <div className="stat-card">
+                    <div className="stat-value">{player.runsGiven}</div>
+                    <div className="stat-label">Runs Given</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.ballsBowled}</div>
+                    <div className="stat-label">Balls Bowled</div>
+                  </div>
+                  
+                  {/* Row 3: Performance Milestones */}
                   <div className={`stat-card ${getStatQuality(player.threeWickets, 'bowling', 'threeWickets')}`}>
                     <div className="stat-value">{player.threeWickets}</div>
                     <div className="stat-label">3W Hauls</div>
                   </div>
+                  <div className={`stat-card ${getStatQuality(player.fiveWickets, 'bowling', 'fiveWickets')}`}>
+                    <div className="stat-value">{player.fiveWickets}</div>
+                    <div className="stat-label">5W Hauls</div>
+                  </div>
+                  <div className={`stat-card ${getStatQuality(player.hattricks, 'bowling', 'hattricks')}`}>
+                    <div className="stat-value">{player.hattricks}</div>
+                    <div className="stat-label">Hattricks</div>
+                  </div>
                   <div className={`stat-card ${getStatQuality(player.maidens, 'bowling', 'maidens')}`}>
                     <div className="stat-value">{player.maidens}</div>
                     <div className="stat-label">Maidens</div>
+                  </div>
+                  
+                  {/* Row 4: Shot Analysis */}
+                  <div className={`stat-card ${getStatQuality(player.dotsGiven, 'bowling', 'maidens')}`}>
+                    <div className="stat-value">{player.dotsGiven}</div>
+                    <div className="stat-label">Dots</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.twosGiven}</div>
+                    <div className="stat-label">Twos</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-value">{player.foursGiven}</div>
+                    <div className="stat-label">Fours</div>
+                  </div>
+                  <div className={`stat-card ${getStatQuality(player.extras, 'bowling', 'extras')}`}>
+                    <div className="stat-value">{player.extras}</div>
+                    <div className="stat-label">Extras</div>
                   </div>
                 </div>
 
@@ -562,8 +704,8 @@ function PlayerDetail() {
                   <ResponsiveContainer width="100%" height={400}>
                     <BarChart data={performanceData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="match" angle={-45} textAnchor="end" height={60} />
-                      <YAxis />
+                      <XAxis dataKey="match" angle={-45} textAnchor="end" height={60} tick={{ fontFamily: 'var(--fontMono)', fontSize: '0.875rem' }} />
+                      <YAxis   tick={{ fontFamily: 'var(--fontMono)', fontSize: '0.875rem' }}/>
                       <Tooltip content={CustomTooltip} />
                       <Bar dataKey="wickets" fill="var(--accentColor)" />
                     </BarChart>
@@ -587,8 +729,7 @@ function PlayerDetail() {
                     <div className="stat-value">{player.bowlingRating.toFixed(0)}</div>
                     <div className="stat-label">Bowling Rating</div>
                   </div>
-                  <div className="stat-card">
-                    <div className="stat-value">{player.allRounderRating.toFixed(0)}</div>
+                  <div className="stat-card"><div className="stat-value">{player.allRounderRating.toFixed(0)}</div>
                     <div className="stat-label">All-Rounder Rating</div>
                   </div>
                 </div>
@@ -599,9 +740,9 @@ function PlayerDetail() {
                   <ResponsiveContainer width="100%" height={400}>
                     <LineChart data={performanceData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="match" angle={-45} textAnchor="end" height={60} />
-                      <YAxis yAxisId="left" orientation="left" stroke="var(--primaryColor)" />
-                      <YAxis yAxisId="right" orientation="right" stroke="var(--accentColor)" />
+                      <XAxis dataKey="match" angle={-45} textAnchor="end" height={60} tick={{ fontFamily: 'var(--fontMono)', fontSize: '0.875rem' }} />
+                      <YAxis yAxisId="left" orientation="left" stroke="var(--primaryColor)" tick={{ fontFamily: 'var(--fontMono)', fontSize: '0.875rem' }} />
+                      <YAxis yAxisId="right" orientation="right" stroke="var(--accentColor)" tick={{ fontFamily: 'var(--fontMono)', fontSize: '0.875rem' }} />
                       <Tooltip content={CustomTooltip} />
                       <Legend />
                       <Line 
@@ -652,6 +793,6 @@ function PlayerDetail() {
       </div>
     </div>
   );
-}
+  }
 
 export default PlayerDetail;

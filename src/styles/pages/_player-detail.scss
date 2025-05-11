@@ -165,13 +165,18 @@
       .player-name {
         font-size: 2.5rem;
         font-weight: bold;
-        color: var(--textPrimary);
+        color: var(--primaryColor);
+        [data-theme="dark"] & {
+          color: var(--accentColor);
+        }
         margin-bottom: 0.5rem;
         font-family: var(--fontTitle);
         letter-spacing: 0.05em;
       }
       
       .player-role {
+        font-family: var(--fontTitle);
+        letter-spacing: 3px;
         font-size: 1.25rem;
         color: var(--textSecondary);
         margin-bottom: 1.5rem;
@@ -203,6 +208,7 @@
           }
           
           .stat-value {
+            
             display: block;
             font-size: 1.5rem;
             font-weight: bold;
@@ -211,6 +217,7 @@
           }
           
           .stat-label {
+            font-family: var(--fontMono);
             font-size: 0.875rem;
             color: var(--textSecondary);
           }
@@ -220,6 +227,7 @@
             
             .stat-value {
               color: $success-color;
+              
             }
           }
           
@@ -240,12 +248,16 @@
     margin: 3rem 0;
     
     .section-title {
-      font-size: 2rem;
-      font-weight: bold;
-      color: var(--textPrimary);
-      margin-bottom: 2rem;
-      text-align: center;
-      position: relative;
+    font-family: var(--fontTitle);
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    letter-spacing: 8px;
+    color: var(--primaryColor);
+    [data-theme="dark"] & {
+      color: var(--accentColor);
+    }
       
       &:after {
         content: '';
@@ -283,8 +295,12 @@
       }
       
       h3 {
+        font-family: var(--fontTitle);
         font-size: 1.25rem;
-        color: var(--textPrimary);
+        color: var(--textSecondary);
+        [data-theme="light"] & {
+          color: var(--primaryColor);
+        }
         margin-bottom: 1rem;
         text-align: center;
       }
@@ -302,6 +318,8 @@
       border-bottom: 2px solid var(--borderColor);
       
       .tab-button {
+        font-family: var(--fontTitle);
+        letter-spacing: 2px;
         flex: 1;
         padding: 1rem;
         background: none;
@@ -353,7 +371,64 @@
           grid-template-columns: repeat(6, 1fr);
         }
       }
-      
+           .highest-score-card {
+          border-color: var(--primaryColor) !important;
+            [data-theme="dark"] & {
+              border-color: var(--accentColor) !important;
+            }
+
+          .stat-value {
+            color: var(--primaryColor);
+            [data-theme="dark"] & {
+              color: var(--accentColor);
+            }
+            font-weight: 700;
+            font-size: 2rem; // Slightly larger for emphasis
+            
+            // Add a subtle glow effect
+            text-shadow: 0 0 10px rgba(var(--accentColor), 0.3);
+          }
+          
+          .stat-label {
+            color: var(--accentColor);
+            font-weight: 600;
+          }
+          
+          // Add hover effect
+          &:hover {
+            box-shadow: 0 5px 15px rgba(var(--accentColor), 0.2);
+            transform: translateY(-3px) scale(1.02);
+          }
+        }
+        .best-bowling-card {
+          border-color: var(--primaryColor) !important;
+            [data-theme="dark"] & {
+              border-color: var(--accentColor) !important;
+            }
+          
+          .stat-value {
+            color: var(--primaryColor);
+            [data-theme="dark"] & {
+              color: var(--accentColor);
+            }
+            font-weight: 700;
+            font-size: 2rem; // Slightly larger for emphasis
+            
+            // Add a subtle glow effect
+            text-shadow: 0 0 10px rgba(var(--accentColor), 0.3);
+          }
+          
+          .stat-label {
+            color: var(--accentColor);
+            font-weight: 600;
+          }
+          
+          // Add hover effect
+          &:hover {
+            box-shadow: 0 5px 15px rgba(var(--accentColor), 0.2);
+            transform: translateY(-3px) scale(1.02);
+          }
+        }
       .stat-card {
         background: var(--surfaceColor);
         padding: 1.5rem;
@@ -385,14 +460,17 @@
           }
         }
         
+   
         .stat-value {
-          font-size: 1.75rem;
-          font-weight: bold;
+          font-family: var(--fontTitle) !important;
+          font-size: 1.5rem;
+          letter-spacing: 2px;
           color: var(--primaryColor);
           margin-bottom: 0.5rem;
         }
         
         .stat-label {
+          font-family: var(--fontMono) !important;
           font-size: 0.875rem;
           color: var(--textSecondary);
         }
@@ -429,8 +507,10 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         
         h3 {
+          font-family: var(--fontTitle);
+          letter-spacing: 2px;
           font-size: 1.25rem;
-          color: var(--textPrimary);
+          color: var(--textSecondary);
           margin-bottom: 1rem;
           text-align: center;
         }
@@ -441,6 +521,20 @@
   // Match History Section
   .player-matches {
     margin: 3rem 0;
+
+    .section-title {
+       font-family: var(--fontTitle);
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      letter-spacing: 8px;
+      color: var(--primaryColor);
+      [data-theme="dark"] & {
+        color: var(--accentColor);
+      }
+    }
+   
     
     .matches-header {
       display: flex;
@@ -451,7 +545,7 @@
       background: var(--surfaceColor);
       border-radius: 1rem;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      
+      font-family: var(--fontMono);      
       .total-matches, .wins, .losses {
         text-align: center;
         
@@ -459,7 +553,11 @@
           display: block;
           font-size: 2rem;
           font-weight: bold;
+          font-family: var(--fontTitle);
           color: var(--primaryColor);
+          [data-theme="dark"] & {
+            color: var(--accentColor);
+          }
           margin-bottom: 0.25rem;
         }
         
@@ -486,6 +584,7 @@
     .matches-container {
       display: grid;
       gap: 1rem;
+      font-family: var(--fontMono);
       
       .match-item-wrapper {
         animation: fadeInUp 0.5s ease-out;
@@ -659,6 +758,11 @@
     
     .custom-tooltip {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+     .recharts-pie-label-text {
+    font-family: var(--fontMono) !important;
+    font-size: 0.875rem !important;
+
     }
   }
 }

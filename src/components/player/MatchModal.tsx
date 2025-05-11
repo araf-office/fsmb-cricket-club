@@ -49,16 +49,19 @@ const MatchModal: React.FC<MatchModalProps> = ({
       <div className="match-summary" onClick={toggleExpand}>
         <div className="match-header">
           <span className="match-number">Match #{index + 1}</span>
-          <span className="match-date">D: {formatDate(match.Date as string)}</span>
+          <span className="match-date">{formatDate(match.Date as string)}</span>
         </div>
         <div className="match-stats">
           <span className={`match-runs ${isHighScore ? 'high-score' : ''}`}>
-            Runs: {match['Runs Scored'] || 0}({match['Balls Faced'] || 0})
+            Runs - {match['Runs Scored'] || 0}({match['Balls Faced'] || 0})
           </span>
           <span className={`match-wickets ${isGoodBowling ? 'good-bowling' : ''}`}>
-            Wickets: {match['Wickets Taken'] || 0}
+            Wickets - {match['Wickets Taken'] || 0}
           </span>
-          {isManOfTheMatch && <span className="match-mom">MoM</span>}
+          {isManOfTheMatch && <span className="match-mom">
+                              <i className="material-icons">star</i>
+                              MoM
+                            </span>}
         </div>
         <div className="arrow-icon">
           <i className="material-icons">
@@ -163,9 +166,12 @@ const MatchModal: React.FC<MatchModalProps> = ({
               <span className="detail-value">{match['Team Name'] || 'N/A'}</span>
             </div>
             {isManOfTheMatch && (
-              <div className="detail-item mom-badge">
-                <span>Man of the Match</span>
-              </div>
+            <div className="detail-item mom-badge">
+              <span>
+                <i className="material-icons">star</i>
+                Man of the Match
+              </span>
+            </div>
             )}
           </div>
         </div>
