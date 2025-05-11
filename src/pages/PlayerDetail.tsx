@@ -11,6 +11,7 @@ import { usePlayerData } from '../hooks/usePlayerData';
 import { getPlayerImage } from '../utils/imageUtils';
 import { PlayerData } from '../types/playerTypes';
 import Preloader from '../components/common/PreLoader';
+import { AnimatePresence } from 'framer-motion';
 import { cacheService } from '../services/cacheService';
 import MatchModal from '../components/player/MatchModal';
 
@@ -372,7 +373,9 @@ function PlayerDetail() {
     return (
       <div className="player-detail-page">
         <div className="container section">
-          <Preloader />
+        <AnimatePresence>
+          {loading && <Preloader />}
+        </AnimatePresence>
         </div>
       </div>
     );

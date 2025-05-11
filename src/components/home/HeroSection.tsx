@@ -3,12 +3,12 @@ import { useEffect, useState, useRef } from 'react'
 
 function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const intervalRef = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
-  // Using smaller, optimized images
   const slides = [
     {
-      // Use a small, compressed image - these are just examples
       imageUrl: 'src/assets/hero/hero_1.jpg',
       title: 'Lets Play Cricket',
       subtitle: 'Where Colleagues Become Competitors',
@@ -25,47 +25,124 @@ function HeroSection() {
     }
   ];
 
-  // More efficient animation handling
+  // Mouse tracking for cricket ball
+    useEffect(() => {
+      let animationId: number;
+      let targetX = 0;
+      let targetY = 0;
+      let currentX = 0;
+      let currentY = 0;
+      const handleMouseMove = (e: MouseEvent) => {
+        if (containerRef.current) {
+          const rect = containerRef.current.getBoundingClientRect();
+          targetX = e.clientX - rect.left;
+          targetY = e.clientY - rect.top;
+        }
+      };
+
+    // Smooth animation loop
+        const animate = () => {
+          // Lerp (linear interpolation) for smooth movement
+          currentX += (targetX - currentX) * 0.1;
+          currentY += (targetY - currentY) * 0.1;
+          
+          setMousePosition({
+            x: currentX,
+            y: currentY
+          });
+          
+          animationId = requestAnimationFrame(animate);
+        };
+
+        const container = containerRef.current;
+        if (container) {
+          container.addEventListener('mousemove', handleMouseMove);
+          animate();
+        }
+
+        return () => {
+          if (container) {
+            container.removeEventListener('mousemove', handleMouseMove);
+          }
+          if (animationId) {
+            cancelAnimationFrame(animationId);
+          }
+        };
+        }, []);
+
+  // Auto slide
   useEffect(() => {
-    // Clear previous interval if it exists
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    
-    // Set new interval
     intervalRef.current = window.setInterval(() => {
       setCurrentSlide(prev => (prev + 1) % slides.length);
-    }, 5000);
+    }, 7000);
     
-    // Cleanup
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
   }, [slides.length]);
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
   
   return (
-    <section className="hero-section">
+    <section className="hero-section" ref={containerRef}>
+      {/* Simple gradient overlay */}
+      <div className="hero-gradient-overlay" />
+      
+      {/* Moving cricket ball */}
+      <div 
+        className="cricket-ball-float"
+        style={{
+          left: `${mousePosition.x}px`,
+          top: `${mousePosition.y}px`
+        }}
+      />
+      
+      {/* Slider with CSS transitions */}
       <div className="hero-slider">
         {slides.map((slide, index) => (
-          <div 
-            key={index} 
+          <div
+            key={index}
             className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
-            // Only load the current and next image to save resources
-            style={index === currentSlide || index === (currentSlide + 1) % slides.length ? { backgroundImage: `url(${slide.imageUrl})` } : {}}
+            style={{ backgroundImage: `url(${slide.imageUrl})` }}
           >
             <div className="overlay">
               <div className="hero-content">
-                <h1>{slide.title}</h1>
-                <p>{slide.subtitle}</p>
-                <div className="button-group">
-                  <a href="/hall-of-fame" className="btn btn-accent">Hall of Fame</a>
-                  <a href="/players" className="btn btn-outline-light">Our Players</a>
+                <h1 className={`hero-title ${index === currentSlide ? 'animate' : ''}`}>
+                  {slide.title}
+                </h1>
+                
+                <p className={`hero-subtitle ${index === currentSlide ? 'animate' : ''}`}>
+                  {slide.subtitle}
+                </p>
+                
+                <div className={`button-group ${index === currentSlide ? 'animate' : ''}`}>
+                  <a href="/hall-of-fame" className="btn btn-accent">
+                    Hall of Fame
+                  </a>
+                  <a href="/players" className="btn btn-outline-light">
+                    Our Players
+                  </a>
                 </div>
               </div>
             </div>
           </div>
+        ))}
+      </div>
+
+      {/* Slide Navigation */}
+      <div className="slide-nav">
+        {slides.map((_, index) => (
+          <button
+            key={index}
+            className={`nav-dot ${index === currentSlide ? 'active' : ''}`}
+            onClick={() => goToSlide(index)}
+          >
+            <span className="progress" />
+          </button>
         ))}
       </div>
     </section>

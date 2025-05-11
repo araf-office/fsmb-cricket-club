@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { getPlayerImage } from '../utils/imageUtils';
 import { PlayerData } from '../types/playerTypes';
 import Preloader from '../components/common/PreLoader';
+import { AnimatePresence } from 'framer-motion';
 
 function Players() {
   const { players, loading, error } = usePlayerData();
@@ -65,7 +66,9 @@ function Players() {
     return (
       <div className="players-page">
         <div className="container section">
-          <Preloader />
+        <AnimatePresence>
+          {loading && <Preloader />}
+        </AnimatePresence>
         </div>
       </div>
     );

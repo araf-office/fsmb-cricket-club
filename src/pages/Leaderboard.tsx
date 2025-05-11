@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { cacheService } from '../services/cacheService';
 import Preloader from '../components/common/PreLoader';
+import { AnimatePresence } from 'framer-motion';
 import { getPlayerImage } from '../utils/imageUtils';
 
 interface LeaderboardPlayer {
@@ -173,7 +174,9 @@ function Leaderboard() {
     return (
       <div className="leaderboard-page">
         <div className="container section">
-          <Preloader />
+        <AnimatePresence>
+          {loading && <Preloader />}
+        </AnimatePresence>
         </div>
       </div>
     );

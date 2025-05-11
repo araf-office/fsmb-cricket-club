@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cacheService } from '../services/cacheService';
 import Preloader from '../components/common/PreLoader';
+import { AnimatePresence } from 'framer-motion';
 import { getPlayerImage } from '../utils/imageUtils';
 
 interface CategoryType {
@@ -161,7 +162,9 @@ function HallOfFame() {
     return (
       <div className="hall-of-fame-page">
         <div className="container section">
-          <Preloader />
+        <AnimatePresence>
+          {loading && <Preloader />}
+        </AnimatePresence>
         </div>
       </div>
     );

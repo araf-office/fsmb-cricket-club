@@ -18,6 +18,7 @@
 @use './styles/pages/hall-of-fame';
 @use './styles/pages/leaderboard';
 @use './styles/components/common/fonts';
+@use './styles/components/common/preloader';
 
 .app {
   display: flex;
