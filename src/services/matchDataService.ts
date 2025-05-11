@@ -53,12 +53,11 @@ const parseMatchData = (matchData: unknown[][]): LastMatchInfo | null => {
   // Check if the first row is a header by looking at the data types
   // If the first row has dates/numbers in expected positions, it's data, not a header
   if (firstRow && typeof firstRow[0] === 'string' && firstRow[0].includes('T')) {
-    // First row looks like data (has a date), don't skip it
-    console.log('First row appears to be data, not skipping');
+    
     dataRows = matchData;
   } else {
     // First row is likely a header, skip it
-    console.log('First row appears to be header, skipping');
+    
     dataRows = matchData.slice(1);
   }
   
@@ -84,11 +83,11 @@ const parseMatchData = (matchData: unknown[][]): LastMatchInfo | null => {
   const players: PlayerTeamInfo[] = [];
   const playerMap = new Map<string, { teams: Set<string>; isManOfMatch: boolean }>();
   
-  console.log('First data row:', firstDataRow);
-  console.log('Extracted date:', date);
+//   console.log('First data row:', firstDataRow);
+//   console.log('Extracted date:', date);
   
   // Process each row
-  dataRows.forEach((row: unknown[], index: number) => {
+  dataRows.forEach((row: unknown[]) => {
     const rowData = row as (string | number | unknown)[];
     const teamName = rowData[teamIndex] ? String(rowData[teamIndex]).trim() : '';
     const playerName = rowData[playerIndex] ? String(rowData[playerIndex]).trim() : '';
@@ -97,21 +96,21 @@ const parseMatchData = (matchData: unknown[][]): LastMatchInfo | null => {
     const momValue = rowData[momIndex] ? String(rowData[momIndex]).toLowerCase().trim() : '';
     
     // Log first few rows for debugging
-    if (index < 5) {
-      console.log(`Row ${index}:`, { 
-        teamName, 
-        playerName, 
-        result, 
-        score, 
-        momValue 
-      });
-    }
+    // if (index < 5) {
+    //   console.log(`Row ${index}:`, { 
+    //     teamName, 
+    //     playerName, 
+    //     result, 
+    //     score, 
+    //     momValue 
+    //   });
+    // }
     
     // Skip if player name is empty
-    if (!playerName) {
-      console.log(`Skipping row ${index} - empty player name`);
-      return;
-    }
+    // if (!playerName) {
+    //   console.log(`Skipping row ${index} - empty player name`);
+    //   return;
+    // }
     
     // Process teams
     if (teamName && teamName !== 'Both Teams') {
@@ -123,7 +122,7 @@ const parseMatchData = (matchData: unknown[][]): LastMatchInfo | null => {
           result: result.toLowerCase() === 'won' ? 'Won' : 'Lost',
           score
         });
-        console.log(`Added team: ${teamName}`);
+        // console.log(`Added team: ${teamName}`);
       }
     }
     
@@ -133,7 +132,7 @@ const parseMatchData = (matchData: unknown[][]): LastMatchInfo | null => {
         teams: new Set(),
         isManOfMatch: false
       });
-      console.log(`Added player: ${playerName}`);
+    //   console.log(`Added player: ${playerName}`);
     }
     
     const playerData = playerMap.get(playerName)!;

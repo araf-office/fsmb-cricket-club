@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchLastMatchData, LastMatchInfo, PlayerTeamInfo } from '../../services/matchDataService';
 import { getPlayerImage } from '../../utils/imageUtils';
+import Preloader from '../common/PreLoader';
 
 interface PlayerWithImage extends PlayerTeamInfo {
   imageUrl: string;
@@ -62,12 +63,7 @@ function LastMatchCard() {
     const loserPlayersList = playersWithImgs.filter(player => 
       player.teams.includes(loser.teamName)
     );
-        console.log('=== LAST MATCH CARD DEBUG ===');
-        console.log('Winner team:', winner);
-        console.log('Loser team:', loser);
-        console.log('All players:', matchData.players);
-        console.log('Winner players:', winnerPlayersList);
-        console.log('Loser players:', loserPlayersList);
+       
     return {
       winnerPlayers: winnerPlayersList,
       loserPlayers: loserPlayersList
@@ -81,7 +77,7 @@ function LastMatchCard() {
     const loadMatchData = async () => {
       try {
         const data = await fetchLastMatchData();
-        console.log('Loaded match data:', data);
+        
         setMatchData(data);
       } catch (err) {
         console.error('Error loading match data:', err);
@@ -128,8 +124,7 @@ function LastMatchCard() {
       <section className="last-match-section">
         <h2 className="section-title">Last Match</h2>
         <div className="last-match-loading">
-          <div className="spinner"></div>
-          <p>Loading match data...</p>
+          <Preloader/>
         </div>
       </section>
     );
