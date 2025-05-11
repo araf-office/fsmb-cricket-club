@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logo from '../../assets/logo.png'
 import { themeService, ThemeType } from '../../services/themeService'
-
+import SearchBar from './SearchBar';
+import { usePlayerData } from '../../hooks/usePlayerData';
 
 function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -11,6 +12,14 @@ function Header() {
   const [showTooltip, setShowTooltip] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const { players } = usePlayerData();
+  const searchableData = players.map(player => ({
+    name: player.name,
+    role: player.role,
+    rank: player.rank,
+    imageUrl: player.imageUrl
+  }));
 
     // Add this state inside the Header component
   const [currentTheme, setCurrentTheme] = useState<ThemeType>('light');
@@ -144,6 +153,10 @@ function Header() {
               {currentTheme === 'light' ? 'dark_mode' : 'light_mode'}
             </i>
           </button>
+
+          <div className="desktop-search">
+            <SearchBar players={searchableData} />
+          </div>
         </div>
 
       </div>

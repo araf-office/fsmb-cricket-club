@@ -6,6 +6,8 @@ import { getPlayerImage } from '../utils/imageUtils';
 import { PlayerData } from '../types/playerTypes';
 import Preloader from '../components/common/PreLoader';
 import { AnimatePresence } from 'framer-motion';
+import AnimatedPage from '../components/common/layout/AnimatedPage'
+
 
 function Players() {
   const { players, loading, error } = usePlayerData();
@@ -85,6 +87,7 @@ function Players() {
   }
 
   return (
+    <AnimatedPage>
     <div className="players-page">
       <section className="section">
         <div className="container">
@@ -125,6 +128,7 @@ function Players() {
         </div>
       </section>
     </div>
+    </AnimatedPage>
   )
 }
 

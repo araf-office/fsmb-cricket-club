@@ -19,6 +19,7 @@
 @use './styles/pages/leaderboard';
 @use './styles/components/common/fonts';
 @use './styles/components/common/preloader';
+@use './styles/components/common/search-bar';
 
 .app {
   display: flex;
