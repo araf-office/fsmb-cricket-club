@@ -8,8 +8,21 @@
   min-height: 100vh;
   transition: background-color 0.3s ease;
   
+  // Ensure full height coverage
+  display: flex;
+  flex-direction: column;
+  
   .container {
     padding: 0 1rem;
+    flex: 1; // This will make the container expand to fill available space
+  }
+  
+  // Ensure no gaps at the bottom
+  &:after {
+    content: '';
+    display: block;
+    height: 0;
+    clear: both;
   }
   
   .section {

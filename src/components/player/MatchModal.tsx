@@ -3,29 +3,31 @@
 import { MatchData } from '../../types/playerTypes';
 
 interface MatchModalProps {
-    match: MatchData;
-    index: number;
-    openModalIndex: number | null;
-    setOpenModalIndex: (index: number | null) => void;
-  }
+  match: MatchData;
+  index: number;
+  openModalIndex: number | null;
+  setOpenModalIndex: (index: number | null) => void;
+}
 
-  const MatchModal: React.FC<MatchModalProps> = ({ 
-    match, 
-    index, 
-    openModalIndex, 
-    setOpenModalIndex 
-  }) =>  {
-    const expanded = openModalIndex === index;
-    const toggleExpand = () => {
-        if (expanded) {
-          setOpenModalIndex(null);
-        } else {
-          setOpenModalIndex(index);
-        }
-      };
-      const isManOfTheMatch = match['Man of the Match'] === 'Y' || 
-      match['Man of the Match'] === match['Player Name'] ||
-      (match['Man of the Match'] && String(match['Man of the Match']).toLowerCase() === 'yes');
+const MatchModal: React.FC<MatchModalProps> = ({ 
+  match, 
+  index, 
+  openModalIndex, 
+  setOpenModalIndex 
+}) => {
+  const expanded = openModalIndex === index;
+  
+  const toggleExpand = () => {
+    if (expanded) {
+      setOpenModalIndex(null);
+    } else {
+      setOpenModalIndex(index);
+    }
+  };
+  
+  const isManOfTheMatch = match['Man of the Match'] === 'Y' || 
+    match['Man of the Match'] === match['Player Name'] ||
+    (match['Man of the Match'] && String(match['Man of the Match']).toLowerCase() === 'yes');
 
   // Format date to remove time component
   const formatDate = (dateString?: string) => {
@@ -33,36 +35,37 @@ interface MatchModalProps {
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString();
-    } catch  {
+    } catch {
       return dateString;
     }
   };
 
-
+  // Determine if it's a good performance
+  const isHighScore = Number(match['Runs Scored'] || 0) >= 30;
+  const isGoodBowling = Number(match['Wickets Taken'] || 0) >= 2;
 
   return (
     <div className={`match-item ${expanded ? 'expanded' : ''}`}>
-    <div className="match-summary" onClick={toggleExpand}>
-      <div className="match-header">
-        <span className="match-number">Match #{index + 1}</span>
-        <span className="match-date">D: {formatDate(match.Date as string)}</span>
-      </div>
-      <div className="match-stats">
-        <span className="match-runs">
-            Runs: {match['Runs Scored'] || 0}({match['Balls Faced'] || 0})
-        </span>
-        <span className="match-wickets">
-            Wickets: {match['Wickets Taken'] || 0}
-        </span>
-        {isManOfTheMatch && <span className="match-mom">MoM</span>}
+      <div className="match-summary" onClick={toggleExpand}>
+        <div className="match-header">
+          <span className="match-number">Match #{index + 1}</span>
+          <span className="match-date">D: {formatDate(match.Date as string)}</span>
         </div>
-      <div className="arrow-icon">
-        {/* Replace text arrows with material icons */}
-        <i className="material-icons">
-          {expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
-        </i>
+        <div className="match-stats">
+          <span className={`match-runs ${isHighScore ? 'high-score' : ''}`}>
+            Runs: {match['Runs Scored'] || 0}({match['Balls Faced'] || 0})
+          </span>
+          <span className={`match-wickets ${isGoodBowling ? 'good-bowling' : ''}`}>
+            Wickets: {match['Wickets Taken'] || 0}
+          </span>
+          {isManOfTheMatch && <span className="match-mom">MoM</span>}
+        </div>
+        <div className="arrow-icon">
+          <i className="material-icons">
+            keyboard_arrow_down
+          </i>
+        </div>
       </div>
-    </div>
       
       {expanded && (
         <div className="match-details">
@@ -71,7 +74,9 @@ interface MatchModalProps {
               <h4>Batting Performance</h4>
               <div className="detail-item">
                 <span className="detail-label">Runs:</span>
-                <span className="detail-value">{match['Runs Scored'] || 0}</span>
+                <span className={`detail-value ${isHighScore ? 'high-score' : ''}`}>
+                  {match['Runs Scored'] || 0}
+                </span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Balls Faced:</span>
@@ -107,7 +112,9 @@ interface MatchModalProps {
               <h4>Bowling Performance</h4>
               <div className="detail-item">
                 <span className="detail-label">Wickets:</span>
-                <span className="detail-value">{match['Wickets Taken'] || 0}</span>
+                <span className={`detail-value ${isGoodBowling ? 'good-bowling' : ''}`}>
+                  {match['Wickets Taken'] || 0}
+                </span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Runs Given:</span>
