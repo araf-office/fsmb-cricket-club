@@ -235,7 +235,7 @@ function PlayerDetail() {
         <div className="custom-tooltip">
           <p className="label">{label || payload[0].name}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }}>
+            <p key={index} style={{ color: entry.payload.color || entry.color || 'var(--textPrimary)' }}>
               {entry.name}: {entry.value}%
               {entry.payload.actualValue && ` (${entry.payload.actualValue})`}
             </p>
