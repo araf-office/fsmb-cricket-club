@@ -1,13 +1,14 @@
 // src/services/cacheService.ts
 import axios from 'axios';
+import { API_CONFIG } from '../config/apiConfig';
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbwf0cA_04JPA151jIwSffoiTJZqox18ybxD2bsKcPja84Mi8d_8HJEbmSRnCh0b5nl8/exec';
+
 
 // Cache keys
-const METADATA_KEY = 'cricket_data_metadata';
-const SUMMARY_KEY = 'cricket_data_summary';
-const PLAYERS_KEY = 'cricket_data_players';
-const PLAYER_PREFIX = 'cricket_player_';
+const METADATA_KEY = API_CONFIG.METADATA_KEY;
+const SUMMARY_KEY = API_CONFIG.SUMMARY_KEY;
+const PLAYERS_KEY = API_CONFIG.PLAYERS_KEY;
+const PLAYER_PREFIX = API_CONFIG.PLAYER_PREFIX;
 
 // Cache TTL (24 hours in milliseconds)
 const CACHE_TTL = 24 * 60 * 60 * 1000;
@@ -42,7 +43,7 @@ export const cacheService = {
   async checkForUpdates(): Promise<boolean> {
     try {
       // Get the latest metadata from server
-      const response = await axios.get(`${API_URL}?type=checkUpdate`);
+      const response = await axios.get(`${API_CONFIG.baseUrl}?type=checkUpdate`);
       const serverMetadata: CacheMetadata = response.data;
       
       // Get our stored metadata
@@ -101,7 +102,7 @@ export const cacheService = {
         setTimeout(() => {
           this.checkForUpdates().then(needsUpdate => {
             if (needsUpdate) {
-              this.fetchFromApiAndCache<SummaryData>(`${API_URL}?type=summary`, cacheKey);
+              this.fetchFromApiAndCache<SummaryData>(`${API_CONFIG.baseUrl}?type=summary`, cacheKey);
             }
           });
         }, 500);
@@ -110,7 +111,7 @@ export const cacheService = {
       }
       
       // Fetch fresh data
-      return await this.fetchFromApiAndCache<SummaryData>(`${API_URL}?type=summary`, cacheKey);
+      return await this.fetchFromApiAndCache<SummaryData>(`${API_CONFIG.baseUrl}?type=summary`, cacheKey);
     } catch (error) {
       console.error("Error fetching summary data:", error);
       
@@ -142,7 +143,7 @@ export const cacheService = {
         setTimeout(() => {
           this.checkForUpdates().then(needsUpdate => {
             if (needsUpdate) {
-              this.fetchFromApiAndCache<PlayersData>(`${API_URL}?type=players`, cacheKey);
+              this.fetchFromApiAndCache<PlayersData>(`${API_CONFIG.baseUrl}?type=players`, cacheKey);
             }
           });
         }, 500);
@@ -151,7 +152,7 @@ export const cacheService = {
       }
       
       // Fetch fresh data
-      return await this.fetchFromApiAndCache<PlayersData>(`${API_URL}?type=players`, cacheKey);
+      return await this.fetchFromApiAndCache<PlayersData>(`${API_CONFIG.baseUrl}?type=players`, cacheKey);
     } catch (error) {
       console.error("Error fetching players:", error);
       
@@ -212,7 +213,7 @@ export const cacheService = {
       
       // Fetch fresh data
       console.log(`Fetching player details for ${playerName}`);
-      const response = await axios.get(`${API_URL}?type=playerDetails&name=${encodeURIComponent(playerName)}`);
+      const response = await axios.get(`${API_CONFIG.baseUrl}?type=playerDetails&name=${encodeURIComponent(playerName)}`);
       const data = response.data as PlayerDetailsData;
       
       // Cache the data with timestamp

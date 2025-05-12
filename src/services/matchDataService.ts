@@ -1,6 +1,7 @@
 // src/services/matchDataService.ts
 import axios from 'axios';
 import { cacheService } from './cacheService';
+import { API_CONFIG } from '../config/apiConfig';
 
 export interface TeamResult {
   teamName: string;
@@ -184,8 +185,8 @@ export const fetchLastMatchData = async (forceRefresh = false): Promise<LastMatc
   try {
     // First check if we have cached data
     if (!forceRefresh) {
-      const cachedData = localStorage.getItem(CACHE_KEY);
-      if (cachedData && !cacheService.isCacheExpired(CACHE_KEY)) {
+      const cachedData = localStorage.getItem(API_CONFIG.MATCH_KEY);
+      if (cachedData && !cacheService.isCacheExpired(API_CONFIG.MATCH_KEY)) {
         console.log('Using cached match data');
         
         // Check for updates in background
@@ -201,7 +202,7 @@ export const fetchLastMatchData = async (forceRefresh = false): Promise<LastMatc
     
     console.log('Fetching fresh match data from API...');
     
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwf0cA_04JPA151jIwSffoiTJZqox18ybxD2bsKcPja84Mi8d_8HJEbmSRnCh0b5nl8/exec';
+    const API_URL = API_CONFIG.baseUrl;
     const response = await axios.get<MatchDataResponse>(`${API_URL}?type=all`);
     
     console.log('API response:', response.data);

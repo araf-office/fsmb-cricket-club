@@ -1,8 +1,9 @@
 // src/components/home/DataTester.tsx
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_CONFIG } from '../config/apiConfig';
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbwf0cA_04JPA151jIwSffoiTJZqox18ybxD2bsKcPja84Mi8d_8HJEbmSRnCh0b5nl8/exec';
+const API_URL = API_CONFIG.baseUrl;
 
 // Cache keys
 const METADATA_KEY = 'cricket_data_metadata';
