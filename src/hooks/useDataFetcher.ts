@@ -1,5 +1,5 @@
 // src/hooks/useDataFetcher.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { cacheService } from '../services/cacheService';
 
 // Define type for data structure
@@ -22,7 +22,7 @@ export const useDataFetcher = (): UseDataFetcherResult => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchData = async (forceRefresh = false): Promise<void> => {
+  const fetchData = useCallback(async (forceRefresh = false): Promise<void> => {
     try {
       setLoading(true);
       // Use cacheService instead of direct API call
@@ -37,17 +37,17 @@ export const useDataFetcher = (): UseDataFetcherResult => {
       setLoading(false);
       console.error('Error in data fetcher hook:', err);
     }
-  };
+  }, []);
 
   // Load data initially
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   // Function to refresh data on demand
-  const refreshData = async (): Promise<void> => {
+  const refreshData = useCallback(async (): Promise<void> => {
     await fetchData(true);
-  };
+  }, [fetchData]);
 
   return { data, loading, error, refreshData };
 };

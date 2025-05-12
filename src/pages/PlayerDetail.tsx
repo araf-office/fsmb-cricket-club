@@ -109,6 +109,18 @@ function PlayerDetail() {
   const [loading, setLoading] = useState(true);
   const [openModalIndex, setOpenModalIndex] = useState<number | null>(null);
   const [selectedTab, setSelectedTab] = useState<'batting' | 'bowling' | 'overall'>('batting');
+
+  useEffect(() => {
+  // Only set up listener if we have a player ID and loaded player data
+    if (id && player) {
+      const removeListener = cacheService.onUpdate(() => {
+        console.log("PlayerDetail: Cache update detected, refreshing data");
+        loadPlayerMatches(id, true); // Force refresh with true parameter
+      });
+      
+      return () => removeListener();
+    }
+  }, [id, player]);
   
   // Determine player role based on stats
   const determinePlayerRole = (playerData: PlayerData): string => {
@@ -183,9 +195,10 @@ function PlayerDetail() {
   }, []);
   
   // Load match data
-  const loadPlayerMatches = async (playerName: string) => {
+  const loadPlayerMatches = async (playerName: string, forceRefresh = false) => {
     try {
-      const playerDetails = await cacheService.fetchPlayerDetails(playerName);
+      const playerDetails = await cacheService.fetchPlayerDetails(playerName, forceRefresh);
+      
       
       if (playerDetails && playerDetails.matches && Array.isArray(playerDetails.matches)) {
         if (playerDetails.matches.length > 0) {

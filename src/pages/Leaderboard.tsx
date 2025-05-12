@@ -50,83 +50,95 @@ function Leaderboard() {
     }
   ];
 
-  useEffect(() => {
-    const fetchLeaderboardData = async () => {
-      try {
-        setLoading(true);
+ const fetchLeaderboardData = async (forceRefresh = false) => {
+    try {
+      setLoading(true);
+      
+      // Fetch players data - now with the forceRefresh parameter
+      const playersData = await cacheService.fetchPlayers(forceRefresh) as PlayersData;
+      
+      if (playersData && playersData.stats && Array.isArray(playersData.stats)) {
+        const headers = playersData.stats[0];
         
-        // Fetch players data
-        const playersData = await cacheService.fetchPlayers() as PlayersData;
+        // Find column indices
+        const nameIndex = headers.findIndex(
+          (header: string | number) => typeof header === 'string' && 
+            header.toLowerCase().includes('name')
+        );
         
-        if (playersData && playersData.stats && Array.isArray(playersData.stats)) {
-          const headers = playersData.stats[0];
+        const runsIndex = headers.findIndex(
+          (header: string | number) => typeof header === 'string' && 
+            (header.toLowerCase().includes('runs scored') || header.toLowerCase() === 'runs')
+        );
+        
+        const wicketsIndex = headers.findIndex(
+          (header: string | number) => typeof header === 'string' && 
+            header.toLowerCase().includes('wicket')
+        );
+        
+        if (nameIndex !== -1) {
+          const playerData = playersData.stats.slice(1);
           
-          // Find column indices
-          const nameIndex = headers.findIndex(
-            (header: string | number) => typeof header === 'string' && 
-              header.toLowerCase().includes('name')
-          );
-          
-          const runsIndex = headers.findIndex(
-            (header: string | number) => typeof header === 'string' && 
-              (header.toLowerCase().includes('runs scored') || header.toLowerCase() === 'runs')
-          );
-          
-          const wicketsIndex = headers.findIndex(
-            (header: string | number) => typeof header === 'string' && 
-              header.toLowerCase().includes('wicket')
-          );
-          
-          if (nameIndex !== -1) {
-            const playerData = playersData.stats.slice(1);
-            
-            // Process run scorers
-            if (runsIndex !== -1) {
-              const tempRunScorers: LeaderboardPlayer[] = playerData
-                .filter((player: (string | number)[]) => player[nameIndex] && player[runsIndex])
-                .map((player: (string | number)[]) => ({
-                  name: String(player[nameIndex]),
-                  runs: Number(player[runsIndex]) || 0,
-                  rank: 0
-                }))
-                .sort((a, b) => (b.runs || 0) - (a.runs || 0))
-                .map((player, index) => ({ ...player, rank: index + 1 }))
+          // Process run scorers
+          if (runsIndex !== -1) {
+            const tempRunScorers: LeaderboardPlayer[] = playerData
+              .filter((player: (string | number)[]) => player[nameIndex] && player[runsIndex])
+              .map((player: (string | number)[]) => ({
+                name: String(player[nameIndex]),
+                runs: Number(player[runsIndex]) || 0,
+                rank: 0
+              }))
+              .sort((a, b) => (b.runs || 0) - (a.runs || 0))
+              .map((player, index) => ({ ...player, rank: index + 1 }))
               .slice(0, 10);
-              
-              setRunScorers(tempRunScorers);
-            }
             
-            // Process wicket takers
-            if (wicketsIndex !== -1) {
-              const tempWicketTakers: LeaderboardPlayer[] = playerData
-                .filter((player: (string | number)[]) => player[nameIndex] && player[wicketsIndex])
-                .map((player: (string | number)[]) => ({
-                  name: String(player[nameIndex]),
-                  wickets: Number(player[wicketsIndex]) || 0,
-                  rank: 0
-                }))
-                .sort((a, b) => (b.wickets || 0) - (a.wickets || 0))
-                .map((player, index) => ({ ...player, rank: index + 1 }))
-                .slice(0, 10);
-              
-              setWicketTakers(tempWicketTakers);
-              
-              // Load player images
-              await loadPlayerImages([...runScorers, ...tempWicketTakers]);
-            }
+            setRunScorers(tempRunScorers);
+          }
+          
+          // Process wicket takers
+          if (wicketsIndex !== -1) {
+            const tempWicketTakers: LeaderboardPlayer[] = playerData
+              .filter((player: (string | number)[]) => player[nameIndex] && player[wicketsIndex])
+              .map((player: (string | number)[]) => ({
+                name: String(player[nameIndex]),
+                wickets: Number(player[wicketsIndex]) || 0,
+                rank: 0
+              }))
+              .sort((a, b) => (b.wickets || 0) - (a.wickets || 0))
+              .map((player, index) => ({ ...player, rank: index + 1 }))
+              .slice(0, 10);
+            
+            setWicketTakers(tempWicketTakers);
+            
+            // Load player images
+            await loadPlayerImages([...runScorers, ...tempWicketTakers]);
           }
         }
-      } catch (error) {
-        console.error('Error fetching leaderboard data:', error);
-        setError('Failed to load leaderboard data');
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching leaderboard data:', error);
+      setError('Failed to load leaderboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+
 
     fetchLeaderboardData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+   useEffect(() => {
+    const removeListener = cacheService.onUpdate(() => {
+      console.log("Leaderboard: Cache update detected, refreshing data");
+      fetchLeaderboardData(true); // Now we can call this with forceRefresh=true
+    });
+    
+    return () => removeListener();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); 
+
 
   const loadPlayerImages = async (players: LeaderboardPlayer[]) => {
     const images: Record<string, string> = {};

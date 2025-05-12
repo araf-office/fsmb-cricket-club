@@ -2,26 +2,32 @@
 import axios from 'axios';
 import { API_CONFIG } from '../config/apiConfig';
 
-
-
 // Cache keys
 const METADATA_KEY = API_CONFIG.METADATA_KEY;
 const SUMMARY_KEY = API_CONFIG.SUMMARY_KEY;
 const PLAYERS_KEY = API_CONFIG.PLAYERS_KEY;
 const PLAYER_PREFIX = API_CONFIG.PLAYER_PREFIX;
+const LAST_CHECK_KEY = 'cricket_last_check_time';
 
-// Cache TTL (24 hours in milliseconds)
-const CACHE_TTL = 24 * 60 * 60 * 1000;
+// Cache TTL (time-to-live)
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const UPDATE_COOLDOWN = 30 * 1000; // 30 seconds - prevents too frequent API calls
 
+// Event system for cache updates
+const updateEvents = new EventTarget();
+const UPDATE_EVENT = 'cache-updated';
+
+// Define types for our data
 interface CacheMetadata {
   lastUpdated: number;
   version: string;
 }
 
-// Define more explicit types for our data
 interface SummaryData {
-  teams: Record<string, unknown>;
-  matches: Array<unknown>;
+  teams?: Record<string, unknown>;
+  matches?: Array<unknown>;
+  lastUpdated?: string;
   [key: string]: unknown;
 }
 
@@ -38,9 +44,48 @@ interface PlayerDetailsData {
   [key: string]: unknown;
 }
 
+// Initialize the background update checker
+let updateCheckerInitialized = false;
+
 export const cacheService = {
-  // Check if data needs updating - but this now runs in the background
-  async checkForUpdates(): Promise<boolean> {
+  // Listen for update events
+  onUpdate(callback: () => void): () => void {
+    const eventListener = () => callback();
+    updateEvents.addEventListener(UPDATE_EVENT, eventListener);
+    
+    // Return a function to remove the listener
+    return () => {
+      updateEvents.removeEventListener(UPDATE_EVENT, eventListener);
+    };
+  },
+
+  // Check if it's time to do an update check
+  shouldCheckForUpdates(): boolean {
+    const lastCheckTime = localStorage.getItem(LAST_CHECK_KEY);
+    if (!lastCheckTime) return true;
+    
+    const now = Date.now();
+    const lastCheck = parseInt(lastCheckTime, 10);
+    
+    // Check if enough time has passed since last check
+    return now - lastCheck > UPDATE_COOLDOWN;
+  },
+
+  // Record that we did an update check
+  recordUpdateCheck(): void {
+    localStorage.setItem(LAST_CHECK_KEY, Date.now().toString());
+  },
+
+  // Check if data needs updating
+  async checkForUpdates(bypassCooldown = false): Promise<boolean> {
+    // Respect cooldown unless explicitly bypassed
+    if (!bypassCooldown && !this.shouldCheckForUpdates()) {
+      console.log("Update check skipped due to cooldown");
+      return false;
+    }
+    
+    this.recordUpdateCheck();
+    
     try {
       // Get the latest metadata from server
       const response = await axios.get(`${API_CONFIG.baseUrl}?type=checkUpdate`);
@@ -85,10 +130,42 @@ export const cacheService = {
     return currentTime - savedTime > CACHE_TTL;
   },
   
+  // Start background update checker
+  initBackgroundUpdater(): void {
+    if (updateCheckerInitialized) return;
+    
+    const checkForUpdatesAndRefresh = async () => {
+      console.log("Running scheduled update check...");
+      const needsUpdate = await this.checkForUpdates(true);
+      
+      if (needsUpdate) {
+        console.log("Updates found, refreshing data...");
+        // Refresh main data
+        await Promise.all([
+          this.fetchSummaryData(true),
+          this.fetchPlayers(true)
+        ]);
+        
+        // Refresh player details for cached players
+        this.refreshCachedPlayerDetails();
+        
+        // Notify subscribers that we've updated
+        updateEvents.dispatchEvent(new Event(UPDATE_EVENT));
+      }
+    };
+    
+    // Run now and then schedule
+    checkForUpdatesAndRefresh();
+    
+    // Setup interval
+    setInterval(checkForUpdatesAndRefresh, UPDATE_CHECK_INTERVAL);
+    
+    updateCheckerInitialized = true;
+  },
+  
   // Fetch summary data (home page data)
   async fetchSummaryData(forceRefresh = false): Promise<SummaryData> {
     const cacheKey = SUMMARY_KEY;
-    // const timestampKey = `${cacheKey}_timestamp`;
     
     try {
       // Check if cache exists and is valid - use immediately if available
@@ -97,16 +174,6 @@ export const cacheService = {
       
       if (cachedData && !isExpired && !forceRefresh) {
         console.log("Using cached summary data");
-        
-        // Check for updates in the background
-        setTimeout(() => {
-          this.checkForUpdates().then(needsUpdate => {
-            if (needsUpdate) {
-              this.fetchFromApiAndCache<SummaryData>(`${API_CONFIG.baseUrl}?type=summary`, cacheKey);
-            }
-          });
-        }, 500);
-        
         return JSON.parse(cachedData) as SummaryData;
       }
       
@@ -138,16 +205,6 @@ export const cacheService = {
       
       if (cachedData && !isExpired && !forceRefresh) {
         console.log("Using cached players data");
-        
-        // Check for updates in the background
-        setTimeout(() => {
-          this.checkForUpdates().then(needsUpdate => {
-            if (needsUpdate) {
-              this.fetchFromApiAndCache<PlayersData>(`${API_CONFIG.baseUrl}?type=players`, cacheKey);
-            }
-          });
-        }, 500);
-        
         return JSON.parse(cachedData) as PlayersData;
       }
       
@@ -181,7 +238,7 @@ export const cacheService = {
     return data;
   },
   
-  // Fetch a specific player's details - optimized with background updates
+  // Fetch a specific player's details - optimized to handle updates
   async fetchPlayerDetails(playerName: string, forceRefresh = false): Promise<PlayerDetailsData> {
     if (!playerName) {
       throw new Error("Player name is required");
@@ -197,17 +254,6 @@ export const cacheService = {
       if (cachedData && !isExpired && !forceRefresh) {
         // Return cached data immediately
         console.log(`Using cached data for player ${playerName}`);
-        
-        // Check for updates in the background
-        setTimeout(() => {
-          this.checkForUpdates().then(needsUpdate => {
-            if (needsUpdate) {
-              // If data needs updating, fetch in the background and update cache
-              this.fetchPlayerDetails(playerName, true);
-            }
-          });
-        }, 100);
-        
         return JSON.parse(cachedData) as PlayerDetailsData;
       }
       
@@ -236,13 +282,46 @@ export const cacheService = {
     }
   },
   
-  // Background fetch player details for all players - with throttling
+  // Background refresh cached player details
+  async refreshCachedPlayerDetails(): Promise<void> {
+    // Find all player caches
+    const playerKeys = Object.keys(localStorage).filter(key => 
+      key.startsWith(PLAYER_PREFIX) && !key.includes("_timestamp")
+    );
+    
+    // Only refresh a subset to avoid too many API calls
+    const MAX_REFRESH = 3;
+    const playerNames = playerKeys
+      .map(key => key.replace(PLAYER_PREFIX, ""))
+      .slice(0, MAX_REFRESH);
+    
+    console.log(`Refreshing details for ${playerNames.length} players in background`);
+    
+    // Refresh each player's data with some spacing
+    for (const playerName of playerNames) {
+      try {
+        await this.fetchPlayerDetails(playerName, true);
+        // Small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 300));
+      } catch (error) {
+        console.error(`Error refreshing player ${playerName}:`, error);
+        // Continue with next player even if one fails
+      }
+    }
+  },
+  
+  // Background fetch player details for all players - with improved throttling
   async prefetchAllPlayerDetails(playerNames: string[]): Promise<void> {
+    if (!playerNames || playerNames.length === 0) return;
+    
     console.log("Starting background prefetch of player details");
     
     // We'll only prefetch a limited number of players to avoid slowing down the app
     const MAX_PREFETCH = 5;
     const playersToPrefetch = playerNames.slice(0, MAX_PREFETCH);
+    
+    // Use a small delay before starting to avoid competing with critical content
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Use a small delay between requests to avoid overwhelming the server
     for (const playerName of playersToPrefetch) {
@@ -271,6 +350,7 @@ export const cacheService = {
     localStorage.removeItem(METADATA_KEY);
     localStorage.removeItem(SUMMARY_KEY);
     localStorage.removeItem(PLAYERS_KEY);
+    localStorage.removeItem(LAST_CHECK_KEY);
     
     // Clear timestamps
     localStorage.removeItem(`${SUMMARY_KEY}_timestamp`);

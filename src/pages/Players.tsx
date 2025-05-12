@@ -7,10 +7,10 @@ import { PlayerData } from '../types/playerTypes';
 import Preloader from '../components/common/PreLoader';
 import { AnimatePresence } from 'framer-motion';
 import AnimatedPage from '../components/common/layout/AnimatedPage'
-
+import { cacheService } from '../services/cacheService';
 
 function Players() {
-  const { players, loading, error } = usePlayerData();
+  const { players, loading, error, refreshData } = usePlayerData();
   const [playersWithImages, setPlayersWithImages] = useState<PlayerData[]>([]);
 
   // Function to determine player role based on the correct thresholds
@@ -38,6 +38,18 @@ function Players() {
     // When nothing meets the criteria, return N/A instead of a default
     return 'N/A';
   };
+
+
+   useEffect(() => {
+    // Subscribe to cache updates
+    const removeListener = cacheService.onUpdate(() => {
+      console.log("Players: Cache updated, refreshing data");
+      refreshData(); // Refresh the players data when an update occurs
+    });
+    
+    // Clean up listener on unmount
+    return () => removeListener();
+  }, [refreshData]);
 
   // Snippet for Players.tsx - update the useEffect for loading images:
   useEffect(() => {

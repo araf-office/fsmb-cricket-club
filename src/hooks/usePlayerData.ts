@@ -1,5 +1,5 @@
 // src/hooks/usePlayerData.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { PlayerData } from '../types/playerTypes';
 import { cacheService } from '../services/cacheService';
 import { parsePlayerData } from '../services/playerDataService';
@@ -16,7 +16,8 @@ export const usePlayerData = (): UsePlayerDataResult => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchPlayerData = async (forceRefresh = false): Promise<void> => {
+  // Create a memoized fetchPlayerData function to avoid recreating it on every render
+  const fetchPlayerData = useCallback(async (forceRefresh = false): Promise<void> => {
     try {
       setLoading(true);
       
@@ -50,17 +51,17 @@ export const usePlayerData = (): UsePlayerDataResult => {
       setLoading(false);
       console.error('Error in player data hook:', err);
     }
-  };
+  }, []);
 
   // Initial data load
   useEffect(() => {
     fetchPlayerData();
-  }, []);
+  }, [fetchPlayerData]);
 
   // Function to refresh data on demand
-  const refreshData = async (): Promise<void> => {
+  const refreshData = useCallback(async (): Promise<void> => {
     await fetchPlayerData(true);
-  };
+  }, [fetchPlayerData]);
 
   return { players, loading, error, refreshData };
 };

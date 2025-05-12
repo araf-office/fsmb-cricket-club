@@ -1,5 +1,5 @@
 // src/pages/HallOfFame.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cacheService } from '../services/cacheService';
 import Preloader from '../components/common/PreLoader';
@@ -46,12 +46,11 @@ function HallOfFame() {
     'Most 4s Given',
     'Most Extras Given'
   ];
-
-  useEffect(() => {
-    const fetchHallOfFameData = async () => {
-      try {
+  
+    const fetchHallOfFameData = useCallback(async (forceRefresh = false) =>{
+    try {
         setLoading(true);
-        const summaryData = await cacheService.fetchSummaryData();
+        const summaryData = await cacheService.fetchSummaryData(forceRefresh);
         
         if (summaryData && summaryData.hallOfFame && Array.isArray(summaryData.hallOfFame)) {
           const relevantData = summaryData.hallOfFame.slice(0, 19);
@@ -68,10 +67,22 @@ function HallOfFame() {
       } finally {
         setLoading(false);
       }
-    };
+    }, []);
 
+
+    useEffect(() => {
+      const removeListener = cacheService.onUpdate(() => {
+      console.log("HallOfFame: Cache update detected, refreshing data");
+      fetchHallOfFameData(true); // Force refresh
+  });
+      
+      return () => removeListener();
+    }, [fetchHallOfFameData]);
+
+
+  useEffect(() => {
     fetchHallOfFameData();
-  }, []);
+  }, [fetchHallOfFameData]);
 
   const loadPlayerImages = async (data: string[][]) => {
     const images: Record<string, string> = {};
