@@ -44,8 +44,8 @@ const columnToIndex = (column: string): number => {
 
 
 const parseMatchData = (matchData: unknown[][]): LastMatchInfo | null => {
-  console.log('Parsing match data:', matchData);
-  console.log('Total rows:', matchData.length);
+  // console.log('Parsing match data:', matchData);
+  // console.log('Total rows:', matchData.length);
   
   // Check if first row looks like a header
   const firstRow = matchData[0];
@@ -62,7 +62,7 @@ const parseMatchData = (matchData: unknown[][]): LastMatchInfo | null => {
     dataRows = matchData.slice(1);
   }
   
-  console.log('Data rows to process:', dataRows.length);
+  // console.log('Data rows to process:', dataRows.length);
   
   if (dataRows.length === 0) {
     console.error('No data rows found');
@@ -141,7 +141,7 @@ const parseMatchData = (matchData: unknown[][]): LastMatchInfo | null => {
     // Check if this player is Man of the Match
     if (momValue === 'yes' || momValue === 'y' || momValue === '1') {
       playerData.isManOfMatch = true;
-      console.log(`${playerName} is Man of the Match`);
+      // console.log(`${playerName} is Man of the Match`);
     }
     
     // Assign player to team
@@ -151,7 +151,7 @@ const parseMatchData = (matchData: unknown[][]): LastMatchInfo | null => {
       });
     } else if (teamName) {
       playerData.teams.add(teamName);
-      console.log(`Added ${playerName} to team ${teamName}`);
+      // console.log(`Added ${playerName} to team ${teamName}`);
     }
   });
   
@@ -170,14 +170,14 @@ const parseMatchData = (matchData: unknown[][]): LastMatchInfo | null => {
     players
   };
   
-  console.log('=== FINAL PARSED DATA ===');
-  console.log('Teams:', teams);
-  console.log('All player names:', players.map(p => p.playerName));
-  console.log('Players with teams:', players.map(p => ({
-    name: p.playerName,
-    teams: p.teams,
-    mom: p.isManOfMatch
-  })));
+  // console.log('=== FINAL PARSED DATA ===');
+  // console.log('Teams:', teams);
+  // console.log('All player names:', players.map(p => p.playerName));
+  // console.log('Players with teams:', players.map(p => ({
+  //   name: p.playerName,
+  //   teams: p.teams,
+  //   mom: p.isManOfMatch
+  // })));
   
   return result;
 };
@@ -187,7 +187,7 @@ export const fetchLastMatchData = async (forceRefresh = false): Promise<LastMatc
     if (!forceRefresh) {
       const cachedData = localStorage.getItem(API_CONFIG.MATCH_KEY);
       if (cachedData && !cacheService.isCacheExpired(API_CONFIG.MATCH_KEY)) {
-        console.log('Using cached match data');
+        // console.log('Using cached match data');
         
         // Check for updates in background
         setTimeout(() => {
@@ -198,14 +198,14 @@ export const fetchLastMatchData = async (forceRefresh = false): Promise<LastMatc
       }
     }
     
-    console.log('Fetching fresh match data from API...');
+    // console.log('Fetching fresh match data from API...');
     
-    console.log('Fetching fresh match data from API...');
+    // console.log('Fetching fresh match data from API...');
     
     const API_URL = API_CONFIG.baseUrl;
     const response = await axios.get<MatchDataResponse>(`${API_URL}?type=all`);
     
-    console.log('API response:', response.data);
+    // console.log('API response:', response.data);
     
     if (!response.data || !response.data['Match Data']) {
       console.error('No match data found in API response');
@@ -215,27 +215,8 @@ export const fetchLastMatchData = async (forceRefresh = false): Promise<LastMatc
     const matchData = response.data['Match Data'];
     
     // Add detailed logging to check for Imam
-    console.log('=== RAW MATCH DATA FROM API ===');
-    console.log('Total rows in Match Data:', matchData.length);
-    
-    // Check if any row has "Imam" as player name
-    let imamFound = false;
-    matchData.forEach((row, index) => {
-      const playerName = row[1]; // Column B is index 1
-      if (playerName === 'Imam') {
-        console.log(`FOUND IMAM at row ${index}:`, row);
-        imamFound = true;
-      }
-    });
-    
-    if (!imamFound) {
-      console.log('IMAM NOT FOUND in raw data from API');
-      console.log('First 5 rows of raw data:');
-      matchData.slice(0, 5).forEach((row, index) => {
-        console.log(`Row ${index}:`, row);
-      });
-    }
-    
+    // console.log('=== RAW MATCH DATA FROM API ===');
+    // console.log('Total rows in Match Data:', matchData.length);
     
    
     const parsedData = parseMatchData(matchData);
@@ -252,9 +233,9 @@ export const fetchLastMatchData = async (forceRefresh = false): Promise<LastMatc
       };
       localStorage.setItem(CACHE_METADATA_KEY, JSON.stringify(metadata));
       
-      console.log('Data cached successfully');
+      // console.log('Data cached successfully');
     } else {
-      console.error('Failed to parse match data');
+      // console.error('Failed to parse match data');
     }
     
     return parsedData;
@@ -265,7 +246,7 @@ export const fetchLastMatchData = async (forceRefresh = false): Promise<LastMatc
     // Try to use cached data as fallback
     const cachedData = localStorage.getItem(CACHE_KEY);
     if (cachedData) {
-      console.log('Using cached data as fallback after error');
+      // console.log('Using cached data as fallback after error');
       return JSON.parse(cachedData) as LastMatchInfo;
     }
     
@@ -279,7 +260,7 @@ const checkForUpdatesInBackground = async (): Promise<void> => {
     // Check if data needs update
     const needsUpdate = await cacheService.checkForUpdates();
     if (needsUpdate) {
-      console.log('Match data needs update, fetching in background...');
+      // console.log('Match data needs update, fetching in background...');
       await fetchLastMatchData(true);
     }
   } catch (error) {
@@ -291,9 +272,9 @@ const checkForUpdatesInBackground = async (): Promise<void> => {
 export const prefetchMatchData = async (): Promise<void> => {
   const cachedData = localStorage.getItem(CACHE_KEY);
   if (!cachedData || cacheService.isCacheExpired(CACHE_KEY)) {
-    console.log('Prefetching match data...');
+    // console.log('Prefetching match data...');
     await fetchLastMatchData(true);
   } else {
-    console.log('Match data already cached, skipping prefetch');
+    // console.log('Match data already cached, skipping prefetch');
   }
 };

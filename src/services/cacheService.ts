@@ -80,7 +80,7 @@ export const cacheService = {
   async checkForUpdates(bypassCooldown = false): Promise<boolean> {
     // Respect cooldown unless explicitly bypassed
     if (!bypassCooldown && !this.shouldCheckForUpdates()) {
-      console.log("Update check skipped due to cooldown");
+      // console.log("Update check skipped due to cooldown");
       return false;
     }
     
@@ -135,11 +135,11 @@ export const cacheService = {
     if (updateCheckerInitialized) return;
     
     const checkForUpdatesAndRefresh = async () => {
-      console.log("Running scheduled update check...");
+      // console.log("Running scheduled update check...");
       const needsUpdate = await this.checkForUpdates(true);
       
       if (needsUpdate) {
-        console.log("Updates found, refreshing data...");
+        // console.log("Updates found, refreshing data...");
         // Refresh main data
         await Promise.all([
           this.fetchSummaryData(true),
@@ -173,7 +173,7 @@ export const cacheService = {
       const isExpired = this.isCacheExpired(cacheKey);
       
       if (cachedData && !isExpired && !forceRefresh) {
-        console.log("Using cached summary data");
+        // console.log("Using cached summary data");
         return JSON.parse(cachedData) as SummaryData;
       }
       
@@ -185,7 +185,7 @@ export const cacheService = {
       // Try to use cached data as fallback even if expired
       const cachedData = localStorage.getItem(cacheKey);
       if (cachedData) {
-        console.log("Using expired cached data as fallback");
+        // console.log("Using expired cached data as fallback");
         return JSON.parse(cachedData) as SummaryData;
       }
       
@@ -204,7 +204,7 @@ export const cacheService = {
       const isExpired = this.isCacheExpired(cacheKey);
       
       if (cachedData && !isExpired && !forceRefresh) {
-        console.log("Using cached players data");
+        // console.log("Using cached players data");
         return JSON.parse(cachedData) as PlayersData;
       }
       
@@ -216,7 +216,7 @@ export const cacheService = {
       // Try to use cached data as fallback even if expired
       const cachedData = localStorage.getItem(cacheKey);
       if (cachedData) {
-        console.log("Using expired cached data as fallback");
+        // console.log("Using expired cached data as fallback");
         return JSON.parse(cachedData) as PlayersData;
       }
       
@@ -227,7 +227,7 @@ export const cacheService = {
   
   // Generic fetch and cache method
   async fetchFromApiAndCache<T>(url: string, cacheKey: string): Promise<T> {
-    console.log(`Fetching data from ${url}`);
+    // console.log(`Fetching data from ${url}`);
     const response = await axios.get(url);
     const data = response.data as T;
     
@@ -253,12 +253,12 @@ export const cacheService = {
       
       if (cachedData && !isExpired && !forceRefresh) {
         // Return cached data immediately
-        console.log(`Using cached data for player ${playerName}`);
+        // console.log(`Using cached data for player ${playerName}`);
         return JSON.parse(cachedData) as PlayerDetailsData;
       }
       
       // Fetch fresh data
-      console.log(`Fetching player details for ${playerName}`);
+      // console.log(`Fetching player details for ${playerName}`);
       const response = await axios.get(`${API_CONFIG.baseUrl}?type=playerDetails&name=${encodeURIComponent(playerName)}`);
       const data = response.data as PlayerDetailsData;
       
@@ -273,7 +273,7 @@ export const cacheService = {
       // Try to use cached data as fallback even if expired
       const cachedData = localStorage.getItem(cacheKey);
       if (cachedData) {
-        console.log(`Using expired cache as fallback for player ${playerName}`);
+        // console.log(`Using expired cache as fallback for player ${playerName}`);
         return JSON.parse(cachedData) as PlayerDetailsData;
       }
       
@@ -295,7 +295,7 @@ export const cacheService = {
       .map(key => key.replace(PLAYER_PREFIX, ""))
       .slice(0, MAX_REFRESH);
     
-    console.log(`Refreshing details for ${playerNames.length} players in background`);
+    // console.log(`Refreshing details for ${playerNames.length} players in background`);
     
     // Refresh each player's data with some spacing
     for (const playerName of playerNames) {
@@ -314,7 +314,7 @@ export const cacheService = {
   async prefetchAllPlayerDetails(playerNames: string[]): Promise<void> {
     if (!playerNames || playerNames.length === 0) return;
     
-    console.log("Starting background prefetch of player details");
+    // console.log("Starting background prefetch of player details");
     
     // We'll only prefetch a limited number of players to avoid slowing down the app
     const MAX_PREFETCH = 5;
@@ -341,7 +341,7 @@ export const cacheService = {
       }
     }
     
-    console.log("Background prefetch complete");
+    // console.log("Background prefetch complete");
   },
   
   // Clear all cache data
@@ -366,6 +366,6 @@ export const cacheService = {
       localStorage.removeItem(`${key}_timestamp`);
     });
     
-    console.log("Cache cleared");
+    // console.log("Cache cleared");
   }
 };
